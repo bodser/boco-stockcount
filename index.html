@@ -1,0 +1,497 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>BoCo Stock Count — v0.8</title>
+<script src="config.js"></script>
+<style>
+:root{--bg0:#e9e6df;--bg1:#fff;--bd:#d9d4c9;--tx:#26241f;--tx2:#6b6659;--tx3:#9a9384;
+--ok:#2f7d4f;--okbg:#e5f2ea;--warn:#a4761a;--warnbg:#f6edda;--dang:#b23b3b;--dangbg:#f6e4e2;--acc:#2f5d7d;--accbg:#e4eef6;--site:#5b3d7d;--sitebg:#ece3f5;--rmd:12px;}
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+body{margin:0;background:var(--bg0);color:var(--tx);-webkit-text-size-adjust:100%;}
+.wrap{max-width:520px;margin:0 auto;padding:10px;}
+.top{display:flex;gap:8px;align-items:center;margin-bottom:6px;}
+select,button,input,textarea{font-size:16px;}
+select#site{flex:1;min-height:44px;border:1px solid var(--site);border-radius:var(--rmd);background:var(--sitebg);padding:0 10px;font-weight:700;color:var(--site);}
+select#loc{flex:1;min-height:44px;border:.5px solid var(--bd);border-radius:var(--rmd);background:var(--bg1);padding:0 10px;font-weight:600;}
+.ic{min-width:48px;min-height:44px;border:.5px solid var(--bd);border-radius:var(--rmd);background:var(--bg1);font-size:22px;line-height:1;cursor:pointer;}
+.crumb{font-size:11px;color:var(--tx3);margin:0 2px 6px;}
+.card{background:var(--bg1);border:.5px solid var(--bd);border-radius:var(--rmd);padding:12px;min-height:420px;}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;-webkit-overflow-scrolling:touch;}
+.tab{white-space:nowrap;border:.5px solid var(--bd);background:var(--bg1);color:var(--tx2);border-radius:20px;padding:7px 12px;min-height:38px;font-size:13px;font-weight:600;cursor:pointer;}
+.tabsel{background:var(--acc);border-color:var(--acc);color:#fff;}.tc{color:var(--tx3);font-weight:700;margin-left:4px;}.tabsel .tc{color:#dbe8f3;}
+.row{width:100%;text-align:left;padding:9px 10px;min-height:48px;margin-bottom:4px;border:.5px solid var(--bd);border-radius:var(--rmd);background:var(--bg1);display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap;}
+.hd{display:flex;justify-content:space-between;font-size:12px;color:var(--tx2);margin-bottom:4px;}
+.fld{margin:12px 0;}.fld label{display:block;font-size:13px;color:var(--tx2);margin-bottom:6px;font-weight:600;}
+.stepper{display:flex;align-items:center;gap:10px;}
+.stepper input{width:80px;text-align:center;min-height:48px;border:.5px solid var(--bd);border-radius:var(--rmd);}
+.sbtn{min-width:52px;min-height:48px;border:.5px solid var(--bd);border-radius:var(--rmd);background:var(--bg1);font-size:22px;cursor:pointer;}
+.big{width:100%;min-height:52px;border-radius:var(--rmd);border:none;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;}
+.primary{background:var(--ok);color:#fff;}.ghost{background:var(--bg1);border:.5px solid var(--bd);color:var(--tx);}
+.acc{background:var(--acc);color:#fff;}.danger{background:var(--dangbg);border:.5px solid var(--dang);color:var(--dang);}.warnb{background:var(--warnbg);border:.5px solid var(--warn);color:var(--warn);}
+.err{color:var(--dang);font-size:13px;margin-top:6px;display:none;font-weight:600;}.mut{font-size:12px;color:var(--tx2);}
+.calc{font-size:14px;color:var(--ok);background:var(--okbg);border-radius:var(--rmd);padding:8px;margin-top:6px;font-weight:600;}
+.note{font-size:12px;color:var(--acc);background:var(--accbg);border-radius:var(--rmd);padding:8px;margin:6px 0;}
+.tnote{font-size:12px;color:var(--site);background:var(--sitebg);border-radius:var(--rmd);padding:8px;margin:6px 0;}
+input.bad{border-color:var(--dang)!important;}
+.f{width:100%;min-height:44px;border:.5px solid var(--bd);border-radius:var(--rmd);padding:0 10px;background:var(--bg1);}
+textarea.f{min-height:60px;padding:8px;}
+.msg{display:none;margin:8px 0 0;font-size:14px;font-weight:600;}
+h2{font-size:18px;margin:2px 0 2px;}.foot{font-size:11px;color:var(--tx3);margin:8px 2px 0;}
+.banner{font-size:12px;border-radius:var(--rmd);padding:6px 10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.b-ok{background:var(--okbg);color:var(--ok);}.b-lock{background:var(--dangbg);color:var(--dang);}.b-off{background:var(--warnbg);color:var(--warn);}
+#scrLogin{max-width:520px;margin:40px auto;padding:10px;}#scrLogin .card{min-height:0;}
+.pin{width:100%;font-size:32px;letter-spacing:12px;text-align:center;min-height:60px;border:.5px solid var(--bd);border-radius:var(--rmd);}
+.link{background:none;border:none;padding:6px 0;cursor:pointer;text-decoration:underline;color:var(--acc);font-size:13px;}
+</style></head><body>
+<div id="scrLogin"><div class="card"><h2>BoCo Stock Count</h2><div class="mut" style="margin-bottom:10px;">Enter your PIN to start counting.</div><input class="pin" id="pin" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••"><button class="big primary" id="pinGo">Start</button><p class="msg" id="pinMsg" style="display:block;color:var(--dang);"></p><div class="mut" id="pinFoot">v0.8 · counts save to the shared BoCo database</div></div></div>
+<div class="wrap" id="app" style="display:none;">
+<div class="banner b-ok" id="banner"><span id="bannerTxt">…</span><button class="link" id="who" style="padding:0;">sign out</button></div>
+<div class="top"><select id="site" title="Site / venue"></select><button class="ic" id="menu" title="Menu / Manager">&#9776;</button></div>
+<div class="top"><select id="loc" title="Area / location"></select><button class="ic" id="addCount" title="Add item to this count">+</button></div>
+<div class="crumb" id="crumb"></div>
+<div class="card">
+  <div id="scrList"><div class="tabs" id="tabs"></div><div id="listBody"></div></div>
+
+  <div id="scrCount" style="display:none;">
+    <button class="mut" id="back" style="background:none;border:none;padding:0;margin-bottom:6px;cursor:pointer;">&#8592; back to list</button>
+    <h2 id="cName"></h2><div class="mut" id="cMeta"></div>
+    <div id="cFields"></div>
+    <div class="fld"><label>Notes (optional)</label><textarea class="f" id="cNotes"></textarea></div>
+    <div class="err" id="cErr">Counts must be whole numbers (0+).</div>
+    <p class="msg" id="msg"></p>
+    <button class="big primary" id="saveNext">Save &amp; next</button>
+    <button class="big ghost" id="removeBtn" style="display:none;">Remove from this count</button>
+    <button class="big warnb" id="flagBtn" style="display:none;">Flag issue / not stocked here</button>
+  </div>
+
+  <div id="scrAdd" style="display:none;">
+    <button class="mut" id="addBack" style="background:none;border:none;padding:0;margin-bottom:6px;cursor:pointer;">&#8592; back to list</button>
+    <h2>Add to this count only</h2>
+    <div class="note">Adds an item to <b id="addScope"></b> only. To change the master catalogue, use Menu &rarr; Manage Stock Items.</div>
+    <input class="f" id="addSearch" placeholder="Search stock items…" style="margin:10px 0;">
+    <div id="addRes"></div>
+    <div id="unknownBox" style="display:none;border:.5px solid var(--warn);background:var(--warnbg);border-radius:var(--rmd);padding:10px;margin-top:8px;">
+      <b style="font-size:14px;">Not in the catalogue — add for review</b>
+      <div class="fld"><label>Name</label><input class="f" id="uName"></div>
+      <div class="fld"><label>Notes</label><textarea class="f" id="uNotes"></textarea></div>
+      <button class="big warnb" id="uAdd">Add unknown item for review</button>
+    </div>
+  </div>
+
+  <div id="scrDone" style="display:none;"><h2>Section done</h2><div class="mut" id="doneLine"></div><button class="big primary" id="doneBack" style="margin-top:12px;">Back to tabs</button></div>
+
+  <div id="scrMenu" style="display:none;">
+    <button class="mut" id="menuBack" style="background:none;border:none;padding:0;margin-bottom:6px;cursor:pointer;">&#8592; back to list</button>
+    <h2>Menu</h2>
+    <button class="big ghost" id="mMgr">Manager summary</button>
+    <button class="big acc" id="mAdmin">Manage Stock Items (master catalogue)</button>
+    <button class="big ghost" id="mCsv">Export CSV (this site)</button>
+    <button class="big ghost" id="mReload">Refresh from database</button>
+  </div>
+
+  <div id="scrMgr" style="display:none;">
+    <button class="mut" id="mgrBack" style="background:none;border:none;padding:0;margin-bottom:6px;cursor:pointer;">&#8592; back</button>
+    <h2>Manager summary — <span id="mgrLoc"></span></h2>
+    <div id="mgrStats" style="font-size:14px;"></div>
+    <button class="big primary" id="csv" style="margin-top:12px;">Export CSV (this site)</button>
+    <button class="big danger" id="lockBtn" style="margin-top:8px;">Lock this count (manager PIN)</button>
+    <div class="mut" id="lockNote" style="margin-top:6px;">Locking closes tonight's count for this site. Nothing can be changed after. The next count opens a new session.</div>
+  </div>
+
+  <div id="scrAdmin" style="display:none;">
+    <button class="mut" id="adminBack" style="background:none;border:none;padding:0;margin-bottom:6px;cursor:pointer;">&#8592; back</button>
+    <h2>Manage Stock Items</h2>
+    <div class="note">Master catalogue — shared across sites. Toggle active per site. For kegs, set size + empty weight so staff can weigh open kegs.</div>
+    <div class="tnote" id="transferNote">Inter-site transfers (Clontarf &harr; Bolton Street) will use <b>from_site / to_site</b> fields — placeholder, not built yet.</div>
+    <button class="big acc" id="adminAdd">+ Add new stock item</button>
+    <div id="adminBody" style="margin-top:8px;"></div>
+  </div>
+
+  <div id="scrEdit" style="display:none;">
+    <button class="mut" id="editBack" style="background:none;border:none;padding:0;margin-bottom:6px;cursor:pointer;">&#8592; back to Manage Stock Items</button>
+    <h2 id="editTitle">Edit stock item</h2>
+    <div class="fld"><label>Name</label><input class="f" id="eName"></div>
+    <div class="fld"><label>Item type / count type</label><select class="f" id="eType"></select></div>
+    <div class="fld"><label>Section</label><select class="f" id="eSection"></select></div>
+    <div class="fld"><label>Location</label><select class="f" id="eLoc"></select></div>
+    <div id="kegAdmin" style="display:none;border:.5px solid var(--bd);border-radius:var(--rmd);padding:8px;">
+      <b style="font-size:13px;">Keg weighing settings</b>
+      <div class="fld"><label>Keg size (litres)</label><input class="f" id="eKegSize" inputmode="numeric"></div>
+      <div class="fld"><label>Empty keg weight (kg)</label><input class="f" id="eEmpty" inputmode="decimal"></div>
+      <div class="fld"><label><input type="checkbox" id="eWeighable" style="width:auto;"> Weighable open keg (staff put it on a scale)</label></div>
+      <div class="mut" id="eFullCalc"></div>
+    </div>
+    <div class="fld"><label>Active per site</label>
+      <label style="font-weight:400;"><input type="checkbox" id="eActiveC" style="width:auto;"> Active in Clontarf</label>
+      <label style="font-weight:400;"><input type="checkbox" id="eActiveB" style="width:auto;"> Active in Bolton Street</label></div>
+    <div class="fld"><label>Barcode (optional)</label><input class="f" id="eBarcode"></div>
+    <div class="fld"><label>Supplier / invoice match (optional)</label><input class="f" id="eSupplier"></div>
+    <div class="fld"><label>Notes</label><textarea class="f" id="eNotes"></textarea></div>
+    <p class="msg" id="eMsg"></p>
+    <button class="big primary" id="eSave">Save</button>
+    <button class="big danger" id="eDelete" style="display:none;">Delete</button>
+    <div class="mut" id="eDelNote" style="margin-top:6px;">Items are never deleted in v0.8 — untick both sites to make one inactive.</div>
+  </div>
+</div>
+<p class="foot">v0.8 · shared database · kegs are counted by <b>weighing the open keg</b> (1 L = 1 kg) · Site &rarr; Location &rarr; Section &rarr; Item · counts separate per site. Dev self-test: add <code>?dev=1</code>.</p>
+<div id="devbar" style="display:none;margin-top:6px;"><button class="ghost" id="uat" style="min-height:38px;border-radius:var(--rmd);padding:6px 12px;cursor:pointer;">run DOM self-test</button><div id="uatOut" style="display:none;margin-top:6px;background:var(--bg1);border:.5px solid var(--bd);border-radius:var(--rmd);padding:8px;font-size:12px;"></div></div>
+</div>
+<script>
+var DATA={"sites":["Clontarf","Bolton Street"],"locations":["Back Bar","Cellar"],"sections_order":["Kegs","Spirits","Wines","Soft Drinks","Bottled Beers","Syrups / Mixers","Other / Review"],"item_types":["keg","bottle","wine_bottle","case","syrup","unknown"],"field_by_type":{"keg":"full_open","bottle":"full_open","wine_bottle":"full_open","case":"cases_singles","syrup":"full_open","unknown":"qty_notes"},"stockItems":[]};
+var SITE_ID={"Clontarf":"CLT","Bolton Street":"BOL"};
+
+// ================= v0.8 data layer (Supabase via PostgREST) =================
+var CFG=window.BOCO_CONFIG||{};
+var API={
+  h:function(extra){var h={"apikey":CFG.key,"Authorization":"Bearer "+CFG.key,"Content-Type":"application/json"};for(var k in (extra||{}))h[k]=extra[k];return h;},
+  get:function(path){return fetch(CFG.url.replace(/\/+$/,"")+"/rest/v1/"+path,{headers:API.h()}).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error("read failed ("+r.status+"): "+t);});return r.json();});},
+  rpc:function(fn,args){return fetch(CFG.url.replace(/\/+$/,"")+"/rest/v1/rpc/"+fn,{method:"POST",headers:API.h(),body:JSON.stringify(args)}).then(function(r){return r.text().then(function(t){var j=null;try{j=t?JSON.parse(t):null;}catch(e){}if(!r.ok){throw new Error((j&&(j.message||j.hint))||t||("error "+r.status));}return j;});});},
+  pin:function(){return sessionStorage.getItem("boco_pin")||"";},
+  login:function(pin){return API.rpc("staff_login",{p_pin:pin}).then(function(u){sessionStorage.setItem("boco_pin",pin);sessionStorage.setItem("boco_user",JSON.stringify(u));return u;});},
+  user:function(){try{return JSON.parse(sessionStorage.getItem("boco_user")||"null");}catch(e){return null;}},
+  logout:function(){sessionStorage.removeItem("boco_pin");sessionStorage.removeItem("boco_user");location.reload();},
+  catalogue:function(){return API.get("stock_item?select=id,name,stock_type,pack_size,keg_size_litres,empty_keg_weight_kg,weighable_open_keg,barcode,supplier_name,notes,active,section:section_id(name),stock_item_site(site_id,active,location:location_id(name))&order=name");},
+  session:function(siteName){return API.rpc("open_or_get_session",{p_pin:API.pin(),p_site:SITE_ID[siteName]});},
+  lines:function(sessionId){return API.get("count_line?session_id=eq."+sessionId+"&select=id,stock_item_id,detail,counted_at,location:location_id(name)");},
+  saveLine:function(sessionId,itemId,locName,base,detail){return API.rpc("save_count_line",{p_pin:API.pin(),p_session_id:sessionId,p_stock_item_id:Number(itemId),p_location:locName,p_counted_base:base,p_detail:detail});},
+  lock:function(pin,sessionId){return API.rpc("lock_session",{p_pin:pin,p_session_id:sessionId});},
+  upsertItem:function(item){return API.rpc("upsert_stock_item",{p_pin:API.pin(),p_item:item});}
+};
+function rowToMaster(r){var cl=null,bo=null;(r.stock_item_site||[]).forEach(function(s){if(s.site_id==="CLT")cl=s;if(s.site_id==="BOL")bo=s;});
+  var sec=(r.section&&r.section.name)||"Other / Review";
+  var loc=(cl&&cl.location&&cl.location.name)||(bo&&bo.location&&bo.location.name)||(sec==="Kegs"?"Cellar":"Back Bar");
+  return {stock_id:String(r.id),db_id:r.id,name:r.name,section:sec,item_type:r.stock_type||"unknown",count_field_type:(DATA.field_by_type[r.stock_type]||"qty_notes"),location:loc,
+    loc_by_site:{"Clontarf":(cl&&cl.location&&cl.location.name)||loc,"Bolton Street":(bo&&bo.location&&bo.location.name)||loc},
+    active_clontarf:(cl?(cl.active?"Y":"N"):"N"),active_bolton:(bo?(bo.active?"Y":"N"):"N"),
+    keg_size_litres:(r.keg_size_litres==null?"":String(Number(r.keg_size_litres))),empty_keg_weight_kg:(r.empty_keg_weight_kg==null?"":String(Number(r.empty_keg_weight_kg))),
+    full_keg_weight_kg:(r.keg_size_litres!=null&&r.empty_keg_weight_kg!=null?String(Math.round((Number(r.keg_size_litres)+Number(r.empty_keg_weight_kg))*10)/10):""),
+    weighable_open_keg:(r.weighable_open_keg?"Y":"N"),barcode:r.barcode||"",supplier_match:r.supplier_name||"",notes:r.notes||"",pack_size:r.pack_size};}
+function baseQty(m,o){ // ml or each, from the prototype's per-item object
+  var pack=Number(m.pack_size)||0;
+  if(m.item_type==="keg"){var L=(Number(m.keg_size_litres)||0)*1000;return Math.round(((o.full||0)+(o.open||0))*L);}
+  if(m.item_type==="case")return (o.cases||0)*1+(o.singles||0); // cases are counted as units of one in v0.8 (case size comes with invoices)
+  if(o.qty!=null)return o.qty;
+  return Math.round(((o.full||0)+(o.open||0))*pack);}
+var SESSION=null; // {id, site_id, status, cutoff_at}
+function startApp(BOOT){
+  var $=function(i){return document.getElementById(i);};
+  var DEV=/[?&]dev=1/.test(location.search); if(DEV)$("devbar").style.display="block";
+  var LKEY="stocktake_v08_prefs", FIELD=DATA.field_by_type;
+  function load(){var p={};try{p=JSON.parse(localStorage.getItem(LKEY))||{};}catch(e){}return {site:p.site,loc:p.loc,tab:p.tab||{},master:BOOT.master,counts:BOOT.counts,lastSaved:BOOT.lastSaved};}
+  function save(st){st.lastSaved=st.lastSaved||Date.now();try{localStorage.setItem(LKEY,JSON.stringify({site:st.site,loc:st.loc,tab:st.tab}));}catch(e){}}
+  var store=load();
+  if(!store.site)store.site=DATA.sites[0];
+  if(!store.loc)store.loc=DATA.locations[0];
+  if(!store.counts)store.counts={};
+  if(!store.tab)store.tab={};
+  var site=store.site, loc=store.loc, cur=null, editId=null, kegMode="weigh", curKeg={size:0,empty:null,full:null,weighable:true};
+
+  DATA.sites.forEach(function(S){var o=document.createElement("option");o.value=S;o.textContent=S;if(S===site)o.selected=true;$("site").appendChild(o);});
+  DATA.locations.forEach(function(L){var o=document.createElement("option");o.value=L;o.textContent=L;if(L===loc)o.selected=true;$("loc").appendChild(o);});
+  DATA.item_types.forEach(function(t){var o=document.createElement("option");o.value=t;o.textContent=t.replace("_"," ");$("eType").appendChild(o);});
+  DATA.sections_order.forEach(function(s){var o=document.createElement("option");o.value=s;o.textContent=s;$("eSection").appendChild(o);});
+  DATA.locations.forEach(function(L){var o=document.createElement("option");o.value=L;o.textContent=L;$("eLoc").appendChild(o);});
+
+  function counts(){store.counts[site]=store.counts[site]||{};store.counts[site][loc]=store.counts[site][loc]||{};return store.counts[site][loc];}
+  function master(){return store.master;}
+  function typeField(t){return FIELD[t]||"qty_notes";}
+  function activeForSite(m,s){s=s||site;return (s==="Clontarf")?(m.active_clontarf!=="N"):(m.active_bolton!=="N");}
+  function meta(id){var m=master()[id];if(m)return m;var c=counts()[id]||{};return {stock_id:id,name:c.name||id,section:c.section||"Other / Review",item_type:c.item_type||"unknown",location:loc};}
+  function hasHistory(id){var s=store.counts||{};for(var S in s){for(var L in s[S]){var r=s[S][L]&&s[S][L][id];if(r&&(r.status==="counted"||r.status==="review"))return true;}}return false;}
+  function listItems(){var out=[];
+    Object.keys(master()).forEach(function(id){var m=master()[id];if(activeForSite(m) && ((m.loc_by_site&&m.loc_by_site[site])||m.location)===loc)out.push({stock_id:id,name:m.name,section:m.section,item_type:m.item_type,added:false});});
+    var c=counts();Object.keys(c).forEach(function(id){var r=c[id];if(r.added && !r.removed && out.every(function(b){return b.stock_id!==id;}))out.push({stock_id:id,name:r.name,section:r.section||"Other / Review",item_type:r.item_type||"unknown",added:true});});
+    return out.filter(function(b){var r=c[b.stock_id];return !(r&&r.removed);});}
+  function sectionsInLoc(){var have={};listItems().forEach(function(i){have[i.section]=1;});return DATA.sections_order.filter(function(s){return have[s];});}
+  function statusOf(id){var c=counts()[id];if(!c||!c.status)return "blank";return c.status;}
+  function secProgress(sec){var its=listItems().filter(function(i){return i.section===sec;});return [its.filter(function(i){return statusOf(i.stock_id)==="counted";}).length,its.length];}
+  function currentTab(){store.tab[site]=store.tab[site]||{};var av=sectionsInLoc(),t=store.tab[site][loc];if(!t||av.indexOf(t)<0)t=av[0];store.tab[site][loc]=t;return t;}
+  function crumb(){$("crumb").textContent=site+"  ›  "+loc+"  ›  "+(currentTab()||"—");}
+  function renderTabs(){var av=sectionsInLoc(),sel=currentTab(),h="";
+    av.forEach(function(sec){var p=secProgress(sec);h+='<button class="tab'+(sec===sel?' tabsel':'')+'" data-sec="'+sec+'">'+sec+'<span class="tc">'+p[0]+'/'+p[1]+'</span></button>';});
+    $("tabs").innerHTML=h;
+    Array.prototype.forEach.call($("tabs").getElementsByClassName("tab"),function(bn){bn.onclick=function(){store.tab[site][loc]=bn.getAttribute("data-sec");save(store);renderTabs();renderList();crumb();};});}
+  function badge(id){var st=statusOf(id),c=counts()[id]||{};
+    if(c.flagged)return ["flagged","var(--warnbg)","var(--warn)"];if(st==="counted")return ["counted","var(--okbg)","var(--ok)"];
+    if(st==="review")return ["review","var(--warnbg)","var(--warn)"];return ["not counted","var(--dangbg)","var(--dang)"];}
+  function summary(id){var c=counts()[id]||{},m=meta(id),ft=typeField(m.item_type);
+    if(statusOf(id)==="blank"&&!c.flagged)return m.item_type.replace("_"," ");
+    if(m.item_type==="keg")return (c.full||0)+" full · "+(Number(c.open||0)).toFixed(2)+" open ("+(c.total_keg_equivalent!=null?c.total_keg_equivalent:((c.full||0)+(c.open||0)))+" kegs)";
+    if(ft==="full_open")return (c.full||0)+" full · "+(Number(c.open||0)).toFixed(1)+" open";
+    if(ft==="cases_singles")return (c.cases||0)+" cases · "+(c.singles||0)+" singles";
+    return (c.qty||0)+" qty";}
+  function renderList(){var sec=currentTab(),its=listItems().filter(function(i){return i.section===sec;});
+    var done=its.filter(function(i){return statusOf(i.stock_id)==="counted";}).length;
+    var h='<div class="hd"><span>'+site+' · '+loc+' · '+sec+'</span><span>'+done+' / '+its.length+' counted</span></div>';
+    its.forEach(function(i){var b=badge(i.stock_id);
+      h+='<button class="row" data-p="'+i.stock_id+'"><span><span style="font-weight:600;">'+i.name+'</span>'+(i.added?' <span class="pill" style="background:var(--warnbg);color:var(--warn);">added</span>':'')+'<br><span class="mut">'+summary(i.stock_id)+'</span></span><span class="pill" style="background:'+b[1]+';color:'+b[2]+';">'+b[0]+'</span></button>';});
+    if(!its.length)h+='<div class="mut" style="padding:20px 0;text-align:center;">No items in this section.</div>';
+    $("listBody").innerHTML=h;
+    Array.prototype.forEach.call($("listBody").getElementsByClassName("row"),function(bn){bn.onclick=function(){openCount(bn.getAttribute("data-p"));};});}
+  function refresh(){renderTabs();renderList();crumb();}
+
+  function isWhole(v){return /^[0-9]+$/.test(String(v).trim());}
+  function stepper(id,val){return '<div class="stepper"><button class="sbtn" data-step="'+id+'" data-d="-1">&#8722;</button><input id="'+id+'" inputmode="numeric" value="'+val+'"><button class="sbtn" data-step="'+id+'" data-d="1">+</button></div>';}
+  function fracStepper(val){return '<div class="stepper"><button class="sbtn" id="oMinus">&#8722;</button><input id="oVal" readonly value="'+Number(val).toFixed(1)+'" style="width:70px;"><button class="sbtn" id="oPlus">+</button></div>';}
+  function show(id){["scrList","scrCount","scrAdd","scrDone","scrMenu","scrMgr","scrAdmin","scrEdit"].forEach(function(x){$(x).style.display="none";});$(id).style.display="block";}
+  function toast(t,col){$("msg").textContent=t;$("msg").style.color=col||"var(--warn)";$("msg").style.display="block";setTimeout(function(){$("msg").style.display="none";},1800);}
+  function wireSteppers(){Array.prototype.forEach.call(document.querySelectorAll("[data-step]"),function(bn){bn.onclick=function(){var t=$(bn.getAttribute("data-step"));var v=isWhole(t.value)?parseInt(t.value,10):0;t.value=Math.max(0,v+parseInt(bn.getAttribute("data-d"),10));validate();};});
+    Array.prototype.forEach.call($("cFields").querySelectorAll("input[inputmode='numeric']"),function(x){x.oninput=validate;});}
+  function wireBottleFrac(){$("oMinus").onclick=function(){var o=Math.max(0,Math.round((parseFloat($("oVal").value)-0.1)*10)/10);$("oVal").value=o.toFixed(1);};
+    $("oPlus").onclick=function(){var o=Math.round((parseFloat($("oVal").value)+0.1)*10)/10;if(o>=1.0){var f=$("cFull");f.value=(isWhole(f.value)?parseInt(f.value,10):0)+1;o=0;toast("full unit +1 (open reset)");}$("oVal").value=o.toFixed(1);validate();};}
+  function wireKegFrac(){if(!$("oMinus"))return;$("oMinus").onclick=function(){var o=Math.max(0,Math.round((parseFloat($("oVal").value)-0.1)*10)/10);$("oVal").value=o.toFixed(1);validate();};
+    $("oPlus").onclick=function(){var o=Math.round((parseFloat($("oVal").value)+0.1)*10)/10;if(o>1)o=1;$("oVal").value=o.toFixed(1);validate();};}
+
+  // ---- keg weighing ----
+  function kegFieldsHTML(m,c){
+    var size=parseFloat(m.keg_size_litres)||0;
+    var empty=(m.empty_keg_weight_kg===""||m.empty_keg_weight_kg==null)?null:parseFloat(m.empty_keg_weight_kg);
+    var weighable=(m.weighable_open_keg!=="N");
+    curKeg={size:size,empty:empty,full:(empty!==null?Math.round((empty+size)*10)/10:null),weighable:weighable};
+    var h='<div class="fld"><label>Full kegs</label>'+stepper("cFull",(c.full||0))+'</div>';
+    if(empty===null){kegMode="manual";
+      h+='<div class="err" style="display:block;">Empty keg weight needed for this keg. A manager can add it in Manage Stock Items. You can still record full kegs, or enter the open fraction manually.</div>';
+      h+='<div class="fld"><label>Open keg fraction (manual, tenths)</label>'+fracStepper(c.open||0)+'</div>';}
+    else if(weighable){kegMode="weigh";
+      h+='<div id="weighWrap"><div class="fld"><label>Open keg gross weight (kg) — put the open keg on the scale</label><input class="f" id="cGross" inputmode="decimal" value="'+(c.gross_weight_kg!=null&&c.gross_weight_kg!==""?c.gross_weight_kg:"")+'"></div><div class="calc" id="calcOut"></div><div class="err" id="kegErr"></div><div class="mut">Size '+size+' L · empty '+empty+' kg · full ≈ '+curKeg.full+' kg · rule: 1 L = 1 kg</div></div>';
+      h+='<button class="link" id="manualToggle">No scale? Enter open fraction manually</button>';
+      h+='<div id="manualWrap" style="display:none;"><div class="fld"><label>Open keg fraction (manual, tenths)</label>'+fracStepper(c.open||0)+'</div></div>';}
+    else {kegMode="manual";
+      h+='<div class="note">This keg is not weighed (e.g. cask / gravity). Enter the open fraction manually.</div>';
+      h+='<div class="fld"><label>Open keg fraction (tenths)</label>'+fracStepper(c.open||0)+'</div>';}
+    return h;}
+  function kegCalc(){var el=$("cGross");if(!el)return;var out=$("calcOut"),err=$("kegErr");var v=el.value.trim();
+    if(v===""){out.textContent="No open keg weighed — recording full kegs only.";err.style.display="none";el.className="f";return;}
+    var g=parseFloat(v);
+    if(isNaN(g)){err.textContent="Enter the weight in kg (numbers only).";err.style.display="block";out.textContent="";el.className="f bad";return;}
+    if(g<curKeg.empty){err.textContent="That's less than the empty keg ("+curKeg.empty+" kg). Check the scale — don't guess.";err.style.display="block";out.textContent="";el.className="f bad";return;}
+    if(g>curKeg.full){err.textContent="That's heavier than a full keg ("+curKeg.full+" kg). Re-check before saving.";err.style.display="block";out.textContent="";el.className="f bad";return;}
+    err.style.display="none";el.className="f";
+    var litres=Math.round((g-curKeg.empty)*100)/100, frac=Math.round((litres/curKeg.size)*100)/100;
+    out.textContent="Beer remaining: "+litres+" L · Open keg: "+frac+" of "+curKeg.size+" L";}
+
+  function openCount(id){cur=id;var m=meta(id),c=counts()[id]||{};
+    $("cName").textContent=m.name;$("cMeta").textContent=site+" · "+m.section+" · "+m.item_type.replace("_"," ");
+    var h="";
+    if(m.item_type==="keg"){h=kegFieldsHTML(m,c);}
+    else{var ft=typeField(m.item_type);
+      if(ft==="full_open"){h+='<div class="fld"><label>Full bottles</label>'+stepper("cFull",(c.full||0))+'</div><div class="fld"><label>Open bottle (tenths)</label>'+fracStepper(c.open||0)+'</div>';}
+      else if(ft==="cases_singles"){h+='<div class="fld"><label>Cases</label>'+stepper("cCases",(c.cases||0))+'</div><div class="fld"><label>Singles</label>'+stepper("cSingles",(c.singles||0))+'</div>';}
+      else {h+='<div class="fld"><label>Quantity</label>'+stepper("cQty",(c.qty||0))+'</div>';}}
+    $("cFields").innerHTML=h;$("cNotes").value=c.notes||"";
+    wireSteppers();
+    if(m.item_type==="keg"){wireKegFrac();
+      if($("cGross")){$("cGross").oninput=function(){kegMode="weigh";kegCalc();validate();};kegCalc();}
+      if($("manualToggle")){$("manualToggle").onclick=function(){kegMode="manual";$("weighWrap").style.display="none";$("manualToggle").style.display="none";$("manualWrap").style.display="block";validate();};}}
+    else if(typeField(m.item_type)==="full_open"){wireBottleFrac();}
+    var added=!!(c.added);$("removeBtn").style.display=added?"block":"none";$("flagBtn").style.display=added?"none":"block";
+    $("flagBtn").textContent=c.flagged?"Un-flag":"Flag issue / not stocked here";validate();show("scrCount");}
+
+  function readFields(){var m=meta(cur),o={notes:$("cNotes").value};
+    if(m.item_type==="keg"){o.full=isWhole($("cFull").value)?parseInt($("cFull").value,10):0;
+      var size=curKeg.size,empty=curKeg.empty,frac=0,gross="",litres="";
+      if(kegMode==="weigh" && $("cGross") && $("cGross").value.trim()!==""){gross=parseFloat($("cGross").value);litres=Math.round((gross-empty)*100)/100;frac=Math.round((litres/size)*100)/100;o.weigh_method="weighed";}
+      else if($("oVal")){frac=parseFloat($("oVal").value)||0;o.weigh_method=(kegMode==="weigh"?"full-only":"manual");}
+      else {o.weigh_method="full-only";}
+      o.open=frac;o.gross_weight_kg=gross;o.litres_remaining=litres;o.keg_size_litres=size;o.empty_keg_weight_kg=(empty===null?"":empty);
+      o.total_keg_equivalent=Math.round((o.full+frac)*100)/100;return o;}
+    var ft=typeField(m.item_type);
+    if(ft==="full_open"){o.full=parseInt($("cFull").value,10);o.open=parseFloat($("oVal").value);}
+    else if(ft==="cases_singles"){o.cases=parseInt($("cCases").value,10);o.singles=parseInt($("cSingles").value,10);}
+    else {o.qty=parseInt($("cQty").value,10);}return o;}
+  function validate(){var m=meta(cur),ok=true;
+    function chk(id){var el=$(id);if(!el)return true;var g=isWhole(el.value);el.className=(el.id==="cGross"?el.className:(g?"":"bad"));return g;}
+    if(m.item_type==="keg"){ok=isWhole($("cFull").value);$("cFull").className=ok?"":"bad";
+      if(kegMode==="weigh" && $("cGross")){var v=$("cGross").value.trim();if(v!==""){var g=parseFloat(v);if(isNaN(g)||g<curKeg.empty||g>curKeg.full)ok=false;}}
+      $("cErr").style.display="none";$("saveNext").disabled=!ok;return ok;}
+    var ft=typeField(m.item_type);
+    if(ft==="full_open")ok=chk("cFull");else if(ft==="cases_singles")ok=chk("cCases")&&chk("cSingles");else ok=chk("cQty");
+    $("cErr").style.display=ok?"none":"block";$("saveNext").disabled=!ok;return ok;}
+  function persist(id,obj){var c=counts();c[id]=Object.assign(c[id]||{},obj);var rec=c[id];save(store);
+    if(!SESSION){toast("no open session — reload","var(--dang)");return;}
+    var m=meta(id);if(!/^\d+$/.test(String(id))){return;}
+    API.saveLine(SESSION.id,id,loc,baseQty(m,rec),rec).then(function(r){rec.saved_at=r.counted_at;rec.saved_by=r.counted_by;store.lastSaved=Date.now();banner();})
+      .catch(function(e){rec.save_error=String(e.message||e);toast("NOT SAVED: "+rec.save_error,"var(--dang)");banner();});}
+  function saveNext(){if(!validate()){toast("fix the count before saving","var(--dang)");return;}
+    var m=meta(cur),o=readFields();o.status="counted";o.counted_at=Date.now();o.name=m.name;o.section=m.section;o.item_type=m.item_type;
+    persist(cur,o);refresh();
+    var sec=currentTab(),its=listItems().filter(function(i){return i.section===sec;});
+    for(var i=0;i<its.length;i++){if(statusOf(its[i].stock_id)!=="counted"&&!(counts()[its[i].stock_id]||{}).flagged){openCount(its[i].stock_id);return;}}
+    $("doneLine").textContent=sec+": "+its.filter(function(i){return statusOf(i.stock_id)==="counted";}).length+" / "+its.length+" counted in "+site+" · "+loc;show("scrDone");}
+  $("saveNext").onclick=saveNext;
+  $("back").onclick=function(){refresh();show("scrList");};$("doneBack").onclick=function(){refresh();show("scrList");};
+  $("removeBtn").onclick=function(){persist(cur,{removed:true,status:"removed"});toast("removed from this count");refresh();show("scrList");};
+  $("flagBtn").onclick=function(){var c=counts()[cur]||{};persist(cur,{flagged:!c.flagged,name:meta(cur).name,section:meta(cur).section,item_type:meta(cur).item_type});refresh();show("scrList");};
+
+  function renderAdd(){$("addScope").textContent=site+" · "+loc;var q=($("addSearch").value||"").toLowerCase();var inList={};listItems().forEach(function(i){inList[i.stock_id]=1;});
+    var hits=Object.keys(master()).map(function(id){return master()[id];}).filter(function(s){return s.name.toLowerCase().indexOf(q)>=0 && !inList[s.stock_id];}).slice(0,40);
+    $("addRes").innerHTML=hits.map(function(s){return '<button class="row ar" data-p="'+s.stock_id+'"><span><span style="font-weight:600;">'+s.name+'</span><br><span class="mut">'+s.section+(activeForSite(s)?"":" · inactive here")+'</span></span><span class="pill" style="background:var(--okbg);color:var(--ok);">stock item</span></button>';}).join("");
+    Array.prototype.forEach.call($("addRes").getElementsByClassName("ar"),function(bn){bn.onclick=function(){var id=bn.getAttribute("data-p"),s=master()[id];persist(id,{added:true,status:"blank",name:s.name,section:s.section,item_type:s.item_type});store.tab[site][loc]=s.section;save(store);refresh();openCount(id);};});
+    $("unknownBox").style.display=(q.length>=2&&hits.length===0)?"block":"none";if($("unknownBox").style.display==="block")$("uName").value=$("addSearch").value;}
+  $("addCount").onclick=function(){$("addSearch").value="";$("addRes").innerHTML="";$("unknownBox").style.display="none";renderAdd();show("scrAdd");};
+  $("addBack").onclick=function(){refresh();show("scrList");};$("addSearch").oninput=renderAdd;
+  $("uAdd").onclick=function(){var nm=($("uName").value||"").trim();if(!nm){toast("name needed","var(--dang)");return;}
+    API.upsertItem({name:nm,section:"Other / Review",stock_type:"unknown",location:loc,active_clontarf:site==="Clontarf",active_bolton:site==="Bolton Street",notes:$("uNotes").value}).then(function(newId){
+      var id=String(newId);master()[id]={stock_id:id,db_id:newId,name:nm,section:"Other / Review",item_type:"unknown",count_field_type:"qty_notes",location:loc,loc_by_site:{},active_clontarf:site==="Clontarf"?"Y":"N",active_bolton:site==="Bolton Street"?"Y":"N",keg_size_litres:"",empty_keg_weight_kg:"",full_keg_weight_kg:"",weighable_open_keg:"N",barcode:"",supplier_match:"",notes:$("uNotes").value,pack_size:1};
+      persist(id,{added:true,unknown:true,status:"review",name:nm,section:"Other / Review",item_type:"unknown",notes:$("uNotes").value});
+      store.tab[site][loc]="Other / Review";save(store);refresh();openCount(id);}).catch(function(e){toast("could not add: "+e.message,"var(--dang)");});};
+
+  $("menu").onclick=function(){show("scrMenu");};$("menuBack").onclick=function(){refresh();show("scrList");};
+  $("mMgr").onclick=function(){openMgr();};$("mAdmin").onclick=function(){openAdmin();};$("mCsv").onclick=function(){csvDownload();};
+  function stats(){var its=listItems(),c=counts();
+    return {total:its.length,counted:its.filter(function(i){return statusOf(i.stock_id)==="counted";}).length,
+      notc:its.filter(function(i){return statusOf(i.stock_id)==="blank"&&!(c[i.stock_id]||{}).flagged;}).length,
+      review:its.filter(function(i){return statusOf(i.stock_id)==="review";}).length,
+      added:Object.keys(c).filter(function(id){return (c[id]||{}).added&&!(c[id]||{}).removed;}).length,
+      removed:Object.keys(c).filter(function(id){return (c[id]||{}).removed;}).length,
+      flagged:Object.keys(c).filter(function(id){return (c[id]||{}).flagged;}).length,last:store.lastSaved};}
+  function openMgr(){var s=stats();$("mgrLoc").textContent=site+" · "+loc;
+    $("mgrStats").innerHTML=[["site",site],["active stock items",s.total],["counted",s.counted],["not counted",s.notc],["review",s.review],["added",s.added],["removed",s.removed],["flagged",s.flagged],["last saved",s.last?new Date(s.last).toLocaleString():"—"]]
+      .map(function(r){return '<div style="display:flex;justify-content:space-between;border-bottom:.5px solid var(--bd);padding:5px 0;"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>';}).join("");show("scrMgr");}
+  $("mgrBack").onclick=function(){refresh();show("scrList");};$("csv").onclick=function(){csvDownload();};
+
+  function siteChips(m){return '<span class="pill" style="background:'+(m.active_clontarf!=="N"?"var(--okbg)":"var(--dangbg)")+';color:'+(m.active_clontarf!=="N"?"var(--ok)":"var(--dang)")+';">C '+(m.active_clontarf!=="N"?"✓":"✗")+'</span> <span class="pill" style="background:'+(m.active_bolton!=="N"?"var(--okbg)":"var(--dangbg)")+';color:'+(m.active_bolton!=="N"?"var(--ok)":"var(--dang)")+';">B '+(m.active_bolton!=="N"?"✓":"✗")+'</span>';}
+  function openAdmin(){var all=Object.keys(master()).map(function(id){return master()[id];});
+    all.sort(function(a,b){return (a.location+a.section+a.name).localeCompare(b.location+b.section+b.name);});
+    $("adminBody").innerHTML=all.map(function(m){return '<button class="row am" data-p="'+m.stock_id+'"><span><span style="font-weight:600;">'+m.name+'</span><br><span class="mut">'+m.location+' · '+m.section+' · '+m.item_type.replace("_"," ")+(m.item_type==="keg"?(" · "+(m.keg_size_litres||"?")+"L"):"")+'</span></span><span>'+siteChips(m)+'</span></button>';}).join("");
+    Array.prototype.forEach.call($("adminBody").getElementsByClassName("am"),function(bn){bn.onclick=function(){openEdit(bn.getAttribute("data-p"));};});show("scrAdmin");}
+  $("adminBack").onclick=function(){refresh();show("scrList");};$("adminAdd").onclick=function(){openEdit(null);};
+  function kegAdminToggle(){var isKeg=$("eType").value==="keg";$("kegAdmin").style.display=isKeg?"block":"none";updateFullCalc();}
+  function updateFullCalc(){var sz=parseFloat($("eKegSize").value),em=parseFloat($("eEmpty").value);
+    $("eFullCalc").textContent=(!isNaN(sz)&&!isNaN(em))?("Full keg weight ≈ "+Math.round((sz+em)*10)/10+" kg (empty "+em+" + "+sz+" L)"):"Set size + empty weight to compute full keg weight.";}
+  $("eType").onchange=kegAdminToggle;$("eKegSize").oninput=updateFullCalc;$("eEmpty").oninput=updateFullCalc;
+  function openEdit(id){editId=id;var m=id?master()[id]:{name:"",item_type:"bottle",section:"Spirits",location:loc,active_clontarf:"Y",active_bolton:"Y",keg_size_litres:"",empty_keg_weight_kg:"",weighable_open_keg:"Y",barcode:"",supplier_match:"",notes:""};
+    $("editTitle").textContent=id?"Edit stock item":"Add new stock item";
+    $("eName").value=m.name;$("eType").value=m.item_type;$("eSection").value=m.section;$("eLoc").value=m.location;
+    $("eKegSize").value=m.keg_size_litres||"";$("eEmpty").value=m.empty_keg_weight_kg||"";$("eWeighable").checked=(m.weighable_open_keg!=="N");
+    $("eActiveC").checked=(m.active_clontarf!=="N");$("eActiveB").checked=(m.active_bolton!=="N");
+    $("eBarcode").value=m.barcode||"";$("eSupplier").value=m.supplier_match||"";$("eNotes").value=m.notes||"";$("eMsg").style.display="none";
+    kegAdminToggle();
+    var hist=id?hasHistory(id):false;$("eDelete").disabled=(!id)||hist;
+    $("eDelNote").textContent=!id?"New item — Save to add to the master catalogue.":(hist?"This item has count history — hard delete is blocked. Untick a site to make it inactive.":"No count history — this item can be hard-deleted.");
+    show("scrEdit");}
+  $("editBack").onclick=function(){openAdmin();};
+  function collect(){var d={name:($("eName").value||"").trim(),item_type:$("eType").value,section:$("eSection").value,location:$("eLoc").value,
+    active_clontarf:$("eActiveC").checked?"Y":"N",active_bolton:$("eActiveB").checked?"Y":"N",barcode:$("eBarcode").value,supplier_match:$("eSupplier").value,notes:$("eNotes").value};
+    if(d.item_type==="keg"){d.keg_size_litres=$("eKegSize").value;d.empty_keg_weight_kg=$("eEmpty").value;d.weighable_open_keg=$("eWeighable").checked?"Y":"N";
+      var sz=parseFloat(d.keg_size_litres),em=parseFloat(d.empty_keg_weight_kg);d.full_keg_weight_kg=(!isNaN(sz)&&!isNaN(em))?String(Math.round((sz+em)*10)/10):"";}
+    else {d.keg_size_litres="";d.empty_keg_weight_kg="";d.full_keg_weight_kg="";d.weighable_open_keg="";}
+    return d;}
+  $("eSave").onclick=function(){var d=collect();if(!d.name){$("eMsg").textContent="Name required";$("eMsg").style.color="var(--dang)";$("eMsg").style.display="block";return;}
+    var payload={id:editId?master()[editId].db_id:null,name:d.name,section:d.section,stock_type:d.item_type,location:d.location,active_clontarf:d.active_clontarf==="Y",active_bolton:d.active_bolton==="Y",
+      keg_size_litres:d.keg_size_litres,empty_keg_weight_kg:d.empty_keg_weight_kg,weighable_open_keg:d.weighable_open_keg==="Y",barcode:d.barcode,supplier_name:d.supplier_match,notes:d.notes};
+    $("eSave").disabled=true;API.upsertItem(payload).then(function(newId){var id=String(newId);d.stock_id=id;d.db_id=newId;d.count_field_type=typeField(d.item_type);d.loc_by_site=Object.assign({},(master()[id]||{}).loc_by_site||{});d.loc_by_site[site]=d.location;d.pack_size=(master()[id]||{}).pack_size||(d.item_type==="case"?1:700);
+      master()[id]=Object.assign(master()[id]||{},d);editId=id;refresh();openAdmin();}).catch(function(e){$("eMsg").textContent="Not saved: "+e.message;$("eMsg").style.color="var(--dang)";$("eMsg").style.display="block";}).then(function(){$("eSave").disabled=false;});}
+  $("eDelete").onclick=function(){if(!editId)return;if(hasHistory(editId)){$("eMsg").textContent="Blocked: item has count history — make it inactive instead.";$("eMsg").style.color="var(--dang)";$("eMsg").style.display="block";return;}
+    }
+
+  // CSV
+  var CSV_HEAD=["site","location","section","stock_item_id","stock_item_name","item_type","count_field_type","full_units_or_cases","singles","open_fraction","keg_size_litres","empty_keg_weight_kg","open_keg_gross_weight_kg","calculated_litres_remaining","calculated_open_fraction","total_keg_equivalent","status","active","added","unknown","removed","flagged","notes","counted_at","last_saved"];
+  function esc(v){v=(v==null?"":String(v));return /[",\n\r]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v;}
+  function buildCSV(){var c=counts();var ls=store.lastSaved?new Date(store.lastSaved).toISOString():"";
+    var ids={};Object.keys(master()).forEach(function(id){if(master()[id].location===loc)ids[id]=1;});Object.keys(c).forEach(function(id){ids[id]=1;});
+    var lines=[CSV_HEAD.join(",")];
+    Object.keys(ids).forEach(function(id){var m=meta(id),d=c[id]||{},ft=typeField(m.item_type),mm=master()[id]||{};
+      var isKeg=(m.item_type==="keg");
+      var fuc=isKeg?(d.full||0):(ft==="full_open"?(d.full||0):(ft==="cases_singles"?(d.cases||0):(d.qty||0)));
+      var sing=(!isKeg&&ft==="cases_singles")?(d.singles||0):"";
+      var opn=isKeg?(d.open!=null?d.open:""):(ft==="full_open"?(Number(d.open||0)).toFixed(1):"");
+      var kSize=isKeg?(mm.keg_size_litres||d.keg_size_litres||""):"";
+      var kEmpty=isKeg?(mm.empty_keg_weight_kg||d.empty_keg_weight_kg||""):"";
+      var kGross=isKeg?(d.gross_weight_kg!=null?d.gross_weight_kg:""):"";
+      var kLit=isKeg?(d.litres_remaining!=null?d.litres_remaining:""):"";
+      var kFrac=isKeg?(d.open!=null?d.open:""):"";
+      var kTot=isKeg?(d.total_keg_equivalent!=null?d.total_keg_equivalent:""):"";
+      var act=master()[id]?(activeForSite(master()[id])?"Y":"N"):"Y";
+      var row=[site,loc,m.section,id,(d.name||m.name),m.item_type,ft,fuc,sing,opn,kSize,kEmpty,kGross,kLit,kFrac,kTot,(d.status||"blank"),act,(d.added?"Y":"N"),(d.unknown?"Y":"N"),(d.removed?"Y":"N"),(d.flagged?"Y":"N"),(d.notes||""),(d.counted_at?new Date(d.counted_at).toISOString():""),ls];
+      lines.push(row.map(esc).join(","));});
+    return lines.join("\n");}
+  function csvDownload(){var blob=new Blob([buildCSV()],{type:"text/csv"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="stockcount_"+site.replace(/\s+/g,"_")+"_"+loc.replace(/\s+/g,"_")+".csv";a.click();}
+
+  $("site").onchange=function(){site=$("site").value;store.site=site;save(store);loadSite(site).then(function(){refresh();show("scrList");});};
+  $("loc").onchange=function(){loc=$("loc").value;store.loc=loc;save(store);refresh();show("scrList");};
+  function banner(){var u=API.user()||{};var b=$("banner");if(!SESSION){b.className="banner b-off";$("bannerTxt").textContent="No session";return;}
+    var dirty=0;var c=store.counts[site]||{};Object.keys(c).forEach(function(L){Object.keys(c[L]).forEach(function(id){if(c[L][id].save_error)dirty++;});});
+    b.className="banner "+(SESSION.status==="locked"?"b-lock":(dirty?"b-off":"b-ok"));
+    $("bannerTxt").textContent=(u.name||"?")+" · "+site+" count #"+SESSION.id+" · "+(SESSION.status==="locked"?"LOCKED":"open since "+new Date(SESSION.opened_at).toLocaleString("en-IE",{weekday:"short",hour:"2-digit",minute:"2-digit"}))+(dirty?" · "+dirty+" NOT SAVED":"");}
+  function loadSite(S){return API.session(S).then(function(s){SESSION=s;return API.lines(s.id);}).then(function(rows){store.counts[S]={};rows.forEach(function(r){var L=(r.location&&r.location.name)||"Back Bar";store.counts[S][L]=store.counts[S][L]||{};var d=r.detail||{};d.saved_at=r.counted_at;store.counts[S][L][String(r.stock_item_id)]=d;});banner();}).catch(function(e){SESSION=null;banner();toast(String(e.message||e),"var(--dang)");});}
+  $("who").onclick=function(){if(confirm("Sign out of the count?"))API.logout();};
+  $("mReload").onclick=function(){$("mReload").disabled=true;API.catalogue().then(function(rows){store.master={};rows.forEach(function(r){var m=rowToMaster(r);store.master[m.stock_id]=m;});return loadSite(site);}).then(function(){refresh();show("scrList");}).catch(function(e){toast(String(e.message||e),"var(--dang)");}).then(function(){$("mReload").disabled=false;});};
+  $("lockBtn").onclick=function(){if(!SESSION)return;var p=prompt("Manager PIN to lock "+site+" count #"+SESSION.id+":");if(!p)return;
+    API.lock(p,SESSION.id).then(function(r){SESSION.status="locked";banner();alert("Locked by "+r.locked_by+". A new session opens on the next save.");return loadSite(site);}).then(function(){refresh();show("scrList");}).catch(function(e){alert("Not locked: "+e.message);});};
+  banner();refresh();show("scrList");
+
+  // ---- dev self-test ----
+  if(DEV){$("uat").onclick=function(){
+    function setSite(S){$("site").value=S;$("site").dispatchEvent(new Event("change"));}
+    function setLoc(L){$("loc").value=L;$("loc").dispatchEvent(new Event("change"));}
+    function pickTab(sec){var bs=$("tabs").getElementsByClassName("tab");for(var i=0;i<bs.length;i++){if(bs[i].getAttribute("data-sec")===sec){bs[i].click();return true;}}return false;}
+    function parseLine(l){var out=[],c2="",q=false;for(var i=0;i<l.length;i++){var ch=l[i];if(q){if(ch==='"'){if(l[i+1]==='"'){c2+='"';i++;}else q=false;}else c2+=ch;}else{if(ch===','){out.push(c2);c2="";}else if(ch==='"')q=true;else c2+=ch;}}out.push(c2);return out;}
+    var F={};
+    // keg fields present
+    var kegIds=Object.keys(master()).filter(function(id){return master()[id].item_type==="keg";});
+    F["keg items have keg_size_litres + empty_keg_weight_kg fields"]=kegIds.length>0 && kegIds.some(function(id){return master()[id].keg_size_litres!=="" && master()[id].empty_keg_weight_kg!=="";});
+    // set a keg to size 50 / empty 11 via admin (manager edit), then weigh
+    setSite("Bolton Street");setLoc("Cellar");pickTab("Kegs");
+    var kegId=$("listBody").getElementsByClassName("row")[0].getAttribute("data-p");
+    $("menu").click();$("mAdmin").click();openEdit(kegId);$("eKegSize").value="50";$("eEmpty").value="11";$("eEmpty").dispatchEvent(new Event("input"));var fullShown=/63\.5|61/.test($("eFullCalc").textContent);$("eSave").click();
+    F["manager can edit keg size + empty weight (full weight computed)"]=master()[kegId].keg_size_litres==="50" && master()[kegId].empty_keg_weight_kg==="11" && master()[kegId].full_keg_weight_kg==="61";
+    setSite("Bolton Street");setLoc("Cellar");pickTab("Kegs");openCount(kegId);
+    F["keg screen shows Full kegs + Open keg gross weight"]=!!$("cFull") && !!$("cGross") && /gross weight/i.test($("cFields").innerHTML);
+    F["non-keg keg fields absent here is n/a (keg open)"]=true;
+    // enter 34kg -> 23L, 0.46
+    $("cFull").value="2";$("cFull").dispatchEvent(new Event("input"));$("cGross").value="34";$("cGross").dispatchEvent(new Event("input"));
+    var calcTxt=$("calcOut").textContent;$("saveNext").click();var rec=store.counts["Bolton Street"]["Cellar"][kegId];
+    F["34kg on 50L/11kg keg -> 23 L remaining"]=/23 L/.test(calcTxt) && rec.litres_remaining===23;
+    F["-> 0.46 open keg fraction"]=rec.open===0.46;
+    F["total keg equivalent = full + fraction (2.46)"]=rec.total_keg_equivalent===2.46;
+    // guard: below empty rejected
+    openCount(kegId);$("cGross").value="5";$("cGross").dispatchEvent(new Event("input"));
+    F["gross below empty weight is rejected (save disabled + error)"]=$("saveNext").disabled===true && $("kegErr").style.display==="block";
+    // guard: above full rejected
+    $("cGross").value="80";$("cGross").dispatchEvent(new Event("input"));
+    F["gross above full keg weight is rejected"]=$("saveNext").disabled===true && $("kegErr").style.display==="block";
+    // fraction uses gross-empty (not raw gross): 34 -> 0.46 not 0.68
+    F["open fraction uses (gross - empty), not raw gross"]=rec.open===0.46 && rec.open!==Math.round(34/50*100)/100;
+    // missing empty weight -> warning
+    var zing=Object.keys(master()).filter(function(id){return master()[id].name==="Zingibeer keg";})[0];
+    setSite("Bolton Street");setLoc("Cellar");pickTab("Kegs");openCount(zing);
+    F["missing empty weight shows a manager-required warning"]=/empty keg weight needed/i.test($("cFields").innerHTML) && !$("cGross");
+    // manual fallback exists (weighable=N keg -> manual fraction, no gross)
+    var beam=Object.keys(master()).filter(function(id){return master()[id].name==="Beamish keg";})[0];
+    openCount(beam);F["manual fallback when scale not used (weighable=N)"]=!$("cGross") && !!$("oVal") && /manual/i.test($("cFields").innerHTML);
+    // non-keg not polluted with keg fields
+    setSite("Bolton Street");setLoc("Back Bar");pickTab("Spirits");var spId=$("listBody").getElementsByClassName("row")[0].getAttribute("data-p");openCount(spId);
+    F["non-keg item screen has no keg weighing fields"]=!$("cGross") && !/gross weight/i.test($("cFields").innerHTML);
+    // CSV keg fields
+    setSite("Bolton Street");setLoc("Cellar");var rows=buildCSV().split("\n"),hdr=parseLine(rows[0]);
+    F["CSV export includes keg weighing fields"]=["keg_size_litres","empty_keg_weight_kg","open_keg_gross_weight_kg","calculated_litres_remaining","calculated_open_fraction","total_keg_equivalent"].every(function(k){return hdr.indexOf(k)>=0;});
+    var kr=null;for(var r=1;r<rows.length;r++){var f=parseLine(rows[r]);if(f[3]===kegId){kr=f;break;}}
+    F["CSV keg row carries litres remaining + total keg equivalent"]=!!(kr && kr[hdr.indexOf("calculated_litres_remaining")]==="23" && kr[hdr.indexOf("total_keg_equivalent")]==="2.46");
+    var ok=Object.keys(F).filter(function(k){return F[k];}).length,tot=Object.keys(F).length;
+    var h="";Object.keys(F).forEach(function(k){h+='<div style="display:flex;justify-content:space-between;gap:8px;"><span>'+k+'</span><b style="color:'+(F[k]?"var(--ok)":"var(--dang)")+'">'+(F[k]?"pass":"FAIL")+'</b></div>';});
+    h+='<div style="margin-top:6px;border-top:.5px solid var(--bd);padding-top:4px;"><b>'+ok+' / '+tot+' checks</b></div>';
+    h+='<div style="margin-top:4px;color:var(--warn);font-weight:600;">usability PENDING · Clontarf PLUs PENDING · spirit weighing = future/admin-only (needs density)</div>';
+    $("uatOut").style.display="block";$("uatOut").innerHTML=h;
+    setSite("Clontarf");setLoc("Back Bar");};}
+}
+
+// ================= boot: PIN -> catalogue -> session -> app =================
+(function(){
+  var $=function(i){return document.getElementById(i);};
+  if(!CFG.url||!CFG.key){$("pinMsg").textContent="config.js is missing the database URL/key.";$("pinGo").disabled=true;return;}
+  function go(){var pin=$("pin").value.trim();$("pinMsg").textContent="";$("pinGo").disabled=true;
+    API.login(pin).then(boot).catch(function(e){$("pinMsg").textContent=String(e.message||e);$("pinGo").disabled=false;$("pin").value="";$("pin").focus();});}
+  function boot(u){$("pinMsg").textContent="Loading catalogue…";
+    var prefs={};try{prefs=JSON.parse(localStorage.getItem("stocktake_v08_prefs"))||{};}catch(e){}
+    var site=prefs.site||(u.site_id==="BOL"?"Bolton Street":"Clontarf");
+    var master={},counts={};
+    API.catalogue().then(function(rows){rows.forEach(function(r){var m=rowToMaster(r);master[m.stock_id]=m;});return API.session(site);})
+      .then(function(s){SESSION=s;return API.lines(s.id);})
+      .then(function(rows){counts[site]={};rows.forEach(function(r){var L=(r.location&&r.location.name)||"Back Bar";counts[site][L]=counts[site][L]||{};var d=r.detail||{};d.saved_at=r.counted_at;counts[site][L][String(r.stock_item_id)]=d;});
+        $("scrLogin").style.display="none";$("app").style.display="block";startApp({master:master,counts:counts,lastSaved:null});})
+      .catch(function(e){$("pinMsg").textContent="Could not load: "+String(e.message||e);$("pinGo").disabled=false;});}
+  $("pinGo").onclick=go;$("pin").onkeydown=function(e){if(e.key==="Enter")go();};
+  if(API.pin()&&API.user()){$("pinMsg").textContent="Signed in as "+API.user().name+"…";boot(API.user());}else{$("pin").focus();}
+})();
+</script></body></html>
