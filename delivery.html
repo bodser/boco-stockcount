@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f2a37">
+<title>BoCo Deliveries</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{--bg:#f4f5f7;--card:#fff;--ink:#1f2a37;--muted:#6b7280;--line:#e5e7eb;--brand:#b5442b;--ok:#1a7f4b;--warn:#b7791f;--bad:#b42318;--soft:#fff4ef}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+  header{position:sticky;top:0;z-index:5;background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px}
+  header h1{font-size:17px;margin:0;flex:1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  header .who{font-size:12px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38%}
+  header button{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
+  main{padding:14px 14px 90px;max-width:640px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+  .card h2{font-size:15px;margin:0 0 10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input,select,textarea{width:100%;font:inherit;padding:12px;border:1px solid #cfd4dc;border-radius:10px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:0;border-color:transparent}
+  textarea{min-height:64px}
+  .row{display:flex;gap:10px}.row>*{flex:1}
+  .btn{display:block;width:100%;font:inherit;font-weight:600;padding:14px;border-radius:12px;border:0;background:var(--brand);color:#fff;margin-top:10px}
+  .btn.secondary{background:#fff;color:var(--ink);border:1px solid #cfd4dc}
+  .btn.ok{background:var(--ok)}.btn.warn{background:var(--warn)}.btn.bad{background:var(--bad)}
+  .btn:disabled{opacity:.45}
+  .seg{display:flex;border:1px solid #cfd4dc;border-radius:12px;overflow:hidden}
+  .seg button{flex:1;font:inherit;font-weight:600;padding:12px;border:0;background:#fff;color:var(--ink)}
+  .seg button.on{background:var(--ink);color:#fff}
+  .pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;background:#eef0f3;color:var(--muted)}
+  .pill.draft{background:#fff7e6;color:#8a5a00}.pill.confirmed{background:#e6f5ec;color:var(--ok)}.pill.void{background:#fbe9e7;color:var(--bad)}
+  .pill.exceptions{background:#fdecec;color:var(--bad)}.pill.unknown{background:#eef0f3}.pill.verified{background:#e6f5ec;color:var(--ok)}
+  .list .item{display:flex;gap:10px;padding:12px 0;border-top:1px solid var(--line);align-items:center}
+  .list .item:first-child{border-top:0}
+  .item .t{flex:1;min-width:0}.item .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .t small{color:var(--muted)}
+  .thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+  .thumbs figure{margin:0;position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#eee}
+  .thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumbs figcaption{position:absolute;left:0;right:0;bottom:0;font-size:11px;padding:3px 6px;background:rgba(0,0,0,.55);color:#fff}
+  .photo-btns{display:flex;gap:10px;margin-top:8px}.photo-btns label{flex:1;margin:0}
+  .photo-btns .btn{margin:0;padding:12px 8px;font-size:14px}
+  .photo-btns input{display:none}
+  .muted{color:var(--muted);font-size:13px}
+  .err{background:#fdecec;color:var(--bad);border:1px solid #f5c2c0;border-radius:10px;padding:10px;margin-top:10px;font-size:14px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+  .toast.show{opacity:1}
+  .hidden{display:none!important}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}.kv dt{color:var(--muted)}.kv dd{margin:0}
+  .pin{font-size:28px;letter-spacing:.4em;text-align:center}
+  .big{font-size:18px}
+  .line{padding:10px 0;border-top:1px solid var(--line)}.line:first-child{border-top:0}
+  .line .x{float:right;color:var(--bad);background:none;border:0;font:inherit;font-size:14px}
+  .uploading{opacity:.5}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">BoCo Deliveries</h1>
+  <span class="who" id="who"></span>
+  <button id="backBtn" class="hidden">Back</button>
+  <button id="logoutBtn" class="hidden">Log out</button>
+</header>
+<main id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+'use strict';
+const CFG = window.BOCO_CONFIG || {};
+const URL_ = CFG.url, KEY = CFG.key;
+const BUCKET = 'delivery-photos';
+const CARRIERS = ['An Post','DPD','GLS','Fastway','UPS','DHL','FedEx','Amazon','Evri','Supplier’s own van','Other'];
+const REASONS = [['short','Short — fewer than ordered'],['over','Over — more than ordered'],['damaged','Damaged'],['wrong_item','Wrong item'],['substitute','Substitute sent'],['rejected','Rejected / refused'],['temperature','Temperature (too warm)'],['other','Other']];
+const SITES = {CLT:'Clontarf', BOL:'Bolton Street'};
+
+// ---------- state ----------
+let S = { pin: sessionStorage.getItem('boco_deliv_pin') || '', me: null, site: localStorage.getItem('boco_deliv_site') || 'CLT',
+          view: 'login', current: null, suppliers: [], pending: 0 };
+
+// ---------- api ----------
+const H = ()=>({ 'apikey': KEY, 'Authorization': 'Bearer '+KEY, 'Content-Type': 'application/json' });
+async function rpc(fn, args){
+  const r = await fetch(`${URL_}/rest/v1/rpc/${fn}`, {method:'POST', headers:H(), body: JSON.stringify(args)});
+  const txt = await r.text(); let j=null; try{ j = txt? JSON.parse(txt):null }catch(e){ j = txt }
+  if(!r.ok){ throw new Error((j && (j.message||j.hint||j.details)) || ('Request failed ('+r.status+')')); }
+  return j;
+}
+async function get(path){
+  const r = await fetch(`${URL_}/rest/v1/${path}`, {headers:H()});
+  if(!r.ok) throw new Error('Could not load ('+r.status+')');
+  return r.json();
+}
+async function uploadPhoto(blob, path){
+  const r = await fetch(`${URL_}/storage/v1/object/${BUCKET}/${path}`, {method:'POST', headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'image/jpeg','x-upsert':'false'}, body: blob});
+  if(!r.ok){ const t = await r.text(); throw new Error('Photo upload failed: '+t.slice(0,120)); }
+  return `${URL_}/storage/v1/object/public/${BUCKET}/${path}`;
+}
+const photoUrl = p => `${URL_}/storage/v1/object/public/${BUCKET}/${p}`;
+const uuid = ()=> (crypto.randomUUID ? crypto.randomUUID() : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)));
+
+// shrink a camera image to <= 1600px JPEG so uploads are quick on back-door signal
+function shrink(file){
+  return new Promise((res, rej)=>{
+    const img = new Image(); const u = URL.createObjectURL(file);
+    img.onload = ()=>{ try{
+      const max = 1600; let w = img.naturalWidth, h = img.naturalHeight; const s = Math.min(1, max/Math.max(w,h)); w = Math.round(w*s); h = Math.round(h*s);
+      const c = document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+      c.toBlob(b=>{ URL.revokeObjectURL(u); b ? res(b) : rej(new Error('Could not process photo')); }, 'image/jpeg', 0.82);
+    }catch(e){ rej(e) } };
+    img.onerror = ()=>{ URL.revokeObjectURL(u); rej(new Error('Could not read photo')) };
+    img.src = u;
+  });
+}
+
+// ---------- helpers ----------
+const $ = sel => document.querySelector(sel);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
+function fmtDate(d){ if(!d) return ''; const [y,m,dd]=String(d).slice(0,10).split('-'); return `${dd}/${m}/${y}`; }
+function fmtTime(ts){ if(!ts) return ''; const d=new Date(ts); return d.toLocaleString('en-IE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+const today = ()=> new Date().toISOString().slice(0,10);
+function setHeader(title, back){ $('#title').textContent = title; $('#backBtn').classList.toggle('hidden', !back); $('#logoutBtn').classList.toggle('hidden', !S.me); $('#who').textContent = S.me ? `${S.me.name} · ${SITES[S.site]||S.site}` : ''; }
+
+// ---------- views ----------
+let RENDER=0;
+function render(){ RENDER++; const app=$('#app'); app.innerHTML=''; ({login:vLogin, home:vHome, newd:vNew, detail:vDetail})[S.view](app); window.scrollTo(0,0); }
+
+function vLogin(app){
+  setHeader('BoCo Deliveries', false);
+  app.innerHTML = `<div class="card"><h2>Sign in</h2>
+    <p class="muted">Enter your staff PIN — the same one as the stock count.</p>
+    <label>PIN</label><input id="pin" class="pin" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="8">
+    <label>Site</label><select id="site"><option value="CLT">Clontarf</option><option value="BOL">Bolton Street</option></select>
+    <button class="btn" id="go">Sign in</button><div id="err"></div></div>`;
+  $('#site').value = S.site;
+  const go = async ()=>{ try{ $('#go').disabled=true; const pin=$('#pin').value.trim(); const me = await rpc('staff_login',{p_pin:pin});
+      S.me = normaliseMe(me); S.pin = pin; sessionStorage.setItem('boco_deliv_pin', pin); S.site = $('#site').value; localStorage.setItem('boco_deliv_site', S.site);
+      if(S.me.site_id && S.me.site_id !== S.site){ S.site = S.me.site_id; localStorage.setItem('boco_deliv_site', S.site); }
+      S.view='home'; render(); }
+    catch(e){ $('#err').innerHTML = `<div class="err">${esc(e.message)}</div>`; $('#go').disabled=false; } };
+  $('#go').onclick = go; $('#pin').onkeydown = e=>{ if(e.key==='Enter') go(); }; $('#pin').focus();
+}
+function normaliseMe(me){ if(Array.isArray(me)) me = me[0]; if(!me) throw new Error('Wrong PIN'); return { staff_id: me.staff_id||me.id, name: me.name, role: me.role, site_id: me.site_id||null }; }
+
+async function vHome(app){
+  const my = RENDER; setHeader('BoCo Deliveries', false);
+  app.innerHTML = `<div class="card"><button class="btn big" id="newBtn">+ New delivery</button></div>
+    <div class="card"><h2>Recent — ${esc(SITES[S.site]||S.site)}</h2><div class="list" id="list"><p class="muted">Loading…</p></div></div>`;
+  $('#newBtn').onclick = ()=>{ S.view='newd'; render(); };
+  try{
+    const since = new Date(Date.now()-21*864e5).toISOString().slice(0,10);
+    const rows = await get(`v_delivery_list?site_id=eq.${S.site}&delivered_on=gte.${since}&order=received_at.desc&limit=60`);
+    if(my !== RENDER) return; // user has moved on — stale render
+    const list = $('#list'); if(!rows.length){ list.innerHTML='<p class="muted">Nothing logged in the last three weeks.</p>'; return; }
+    list.innerHTML = rows.map(r=>{
+      const name = r.delivery_kind==='supplier' ? r.supplier_name : (r.carrier||r.sender||'Parcel');
+      const sub = r.delivery_kind==='supplier' ? (r.document_ref? 'Docket '+r.document_ref : 'No docket no.') : ['Parcel', r.tracking_ref, r.addressed_to?('for '+r.addressed_to):''].filter(Boolean).join(' · ');
+      return `<div class="item" data-id="${r.id}"><div class="t"><b>${esc(name)}</b><small>${fmtDate(r.delivered_on)} · ${esc(sub)} · ${r.photo_count} photo${r.photo_count==1?'':'s'}${r.exception_count? ' · '+r.exception_count+' issue'+(r.exception_count==1?'':'s'):''} · ${esc(r.received_by_name||'')}</small></div>
+        <span class="pill ${r.status}">${r.status}</span>${r.status!=='void'?`<span class="pill ${r.contents_status}">${r.contents_status}</span>`:''}</div>`; }).join('');
+    list.querySelectorAll('.item').forEach(el=> el.onclick = ()=> openDetail(el.dataset.id));
+  }catch(e){ if(my !== RENDER) return; $('#list').innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+async function loadSuppliers(){ if(S.suppliers.length) return; try{ S.suppliers = await get('supplier_directory?active=is.true&order=delivers_goods.desc,sort_order,name'); }catch(e){ S.suppliers=[]; } }
+
+async function vNew(app){
+  const my = RENDER; setHeader('New delivery', true);
+  await loadSuppliers(); if(my !== RENDER) return;
+  const goods = S.suppliers.filter(s=>s.delivers_goods), other = S.suppliers.filter(s=>!s.delivers_goods);
+  const opt = s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`;
+  app.innerHTML = `<div class="card">
+    <div class="seg"><button id="kSup" class="on">Supplier delivery</button><button id="kPar">Parcel / courier</button></div>
+    <div id="fSup">
+      <label>Supplier</label><select id="supplier"><option value="">— choose —</option>${goods.map(opt).join('')}<optgroup label="Services / other accounts">${other.map(opt).join('')}</optgroup><option value="__other">Other (type the name)</option></select>
+      <div id="supOtherWrap" class="hidden"><label>Supplier name as printed</label><input id="supOther" placeholder="e.g. New Bakery Ltd"></div>
+      <label>Docket / delivery note number <span class="muted">(as printed — leave blank if none, but then photograph the docket)</span></label><input id="docref" autocapitalize="characters" autocomplete="off">
+      <label>Supplier account number <span class="muted">(optional)</span></label><input id="acct" autocomplete="off">
+    </div>
+    <div id="fPar" class="hidden">
+      <label>Carrier</label><select id="carrier"><option value="">— choose —</option>${CARRIERS.map(c=>`<option>${c}</option>`).join('')}</select>
+      <label>Sender / who it's from <span class="muted">(if known)</span></label><input id="sender" placeholder="e.g. Amazon, Nisbets, unknown">
+      <label>Tracking / parcel reference <span class="muted">(optional)</span></label><input id="tracking" autocapitalize="characters" autocomplete="off">
+      <label>Addressed to <span class="muted">(person or department)</span></label><input id="addressed" placeholder="e.g. Colm, Kitchen">
+    </div>
+    <div class="row"><div><label>Delivered on</label><input id="date" type="date" value="${today()}"></div><div><label>Site</label><select id="siteSel"><option value="CLT">Clontarf</option><option value="BOL">Bolton Street</option></select></div></div>
+    <label>Note <span class="muted">(optional)</span></label><input id="note" placeholder="e.g. left in the yard, driver in a hurry">
+    <button class="btn" id="save">Start — next: photos</button><div id="err"></div></div>`;
+  $('#siteSel').value = S.site; if(S.me.site_id) $('#siteSel').disabled = true;
+  let kind='supplier';
+  $('#kSup').onclick=()=>{kind='supplier';$('#kSup').classList.add('on');$('#kPar').classList.remove('on');$('#fSup').classList.remove('hidden');$('#fPar').classList.add('hidden');};
+  $('#kPar').onclick=()=>{kind='parcel';$('#kPar').classList.add('on');$('#kSup').classList.remove('on');$('#fPar').classList.remove('hidden');$('#fSup').classList.add('hidden');};
+  $('#supplier').onchange=()=> $('#supOtherWrap').classList.toggle('hidden', $('#supplier').value!=='__other');
+  $('#save').onclick = async ()=>{
+    try{
+      $('#save').disabled=true;
+      const d = { kind, site: $('#siteSel').value, delivered_on: $('#date').value, note: $('#note').value };
+      if(kind==='supplier'){ d.supplier_name = $('#supplier').value==='__other' ? $('#supOther').value : $('#supplier').value; d.document_ref=$('#docref').value; d.supplier_account_ref=$('#acct').value;
+        if(!d.supplier_name.trim()) throw new Error('Choose the supplier (or pick Other and type the name).'); }
+      else { d.carrier=$('#carrier').value; d.sender=$('#sender').value; d.tracking_ref=$('#tracking').value; d.addressed_to=$('#addressed').value;
+        if(!d.carrier && !d.sender.trim()) throw new Error('Choose a carrier or type who it is from.'); }
+      const res = await rpc('delivery_open', {p_pin:S.pin, p_delivery:d});
+      S.site = d.site; localStorage.setItem('boco_deliv_site', S.site);
+      toast('Saved as draft — now take the photos'); openDetail(res.id);
+    }catch(e){ $('#err').innerHTML=`<div class="err">${esc(e.message)}</div>`; $('#save').disabled=false; }
+  };
+}
+
+async function openDetail(id){ S.current = id; S.view='detail'; render(); }
+
+async function vDetail(app){
+  const my = RENDER; setHeader('Delivery', true);
+  app.innerHTML = '<p class="muted">Loading…</p>';
+  let d, photos, lines;
+  try{
+    [d, photos, lines] = await Promise.all([
+      get(`v_delivery_list?id=eq.${S.current}`).then(r=>r[0]),
+      get(`delivery_photo?delivery_id=eq.${S.current}&order=sort_order`),
+      get(`delivery_line?delivery_id=eq.${S.current}&order=created_at`) ]);
+  }catch(e){ if(my !== RENDER) return; app.innerHTML=`<div class="err">${esc(e.message)}</div>`; return; }
+  if(my !== RENDER) return;
+  if(!d){ app.innerHTML='<div class="err">Delivery not found.</div>'; return; }
+  const isSup = d.delivery_kind==='supplier', draft = d.status==='draft', voided = d.status==='void', mgr = ['manager','owner'].includes(S.me.role);
+  const name = isSup ? d.supplier_name : (d.carrier||d.sender||'Parcel');
+  setHeader(name, true);
+  const exc = lines.filter(l=>l.line_kind==='exception');
+  app.innerHTML = `
+  <div class="card">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><span class="pill ${d.status}">${d.status}</span>${voided?'':`<span class="pill ${d.contents_status}">${isSup? d.contents_status : 'contents '+d.contents_status}</span>`}<span class="pill">${isSup?'supplier':'parcel'}</span></div>
+    <dl class="kv">
+      ${isSup?`<dt>Supplier</dt><dd>${esc(d.supplier_name)}</dd><dt>Docket no.</dt><dd>${esc(d.document_ref||'—')}</dd>`:`<dt>Carrier</dt><dd>${esc(d.carrier||'—')}</dd><dt>Sender</dt><dd>${esc(d.sender||'—')}</dd><dt>Tracking</dt><dd>${esc(d.tracking_ref||'—')}</dd><dt>Addressed to</dt><dd>${esc(d.addressed_to||'—')}</dd>`}
+      <dt>Delivered</dt><dd>${fmtDate(d.delivered_on)} · ${esc(SITES[d.site_id]||d.site_id)}</dd>
+      <dt>Received by</dt><dd>${esc(d.received_by_name||'')} ${fmtTime(d.received_at)}</dd>
+      ${d.confirmed_at?`<dt>Confirmed</dt><dd>${esc(d.confirmed_by_name||'')} ${fmtTime(d.confirmed_at)}</dd>`:''}
+      ${d.note?`<dt>Note</dt><dd>${esc(d.note)}</dd>`:''}
+    </dl>
+  </div>
+  <div class="card"><h2>Photos (${photos.length})</h2>
+    <p class="muted">${isSup?'Photograph the docket first, then the goods — as many as you need: a wide shot, then anything hidden, mixed cases, labels or damage.':'Photograph the label and the parcel. If you open it, photograph the contents too.'}</p>
+    <div class="thumbs" id="thumbs">${photos.map(p=>`<figure><img src="${photoUrl(p.storage_path)}" alt=""><figcaption>${p.photo_kind}</figcaption></figure>`).join('')}</div>
+    ${voided?'':`<div class="photo-btns">
+      <label><span class="btn secondary">📄 ${isSup?'Docket':'Label'} photo</span><input type="file" accept="image/*" capture="environment" data-kind="docket"></label>
+      <label><span class="btn secondary">📦 Goods photo(s)</span><input type="file" accept="image/*" capture="environment" multiple data-kind="goods"></label>
+    </div><div id="perr"></div>`}
+  </div>
+  ${isSup?`<div class="card"><h2>Problems (${exc.length})</h2>
+    <div id="lines">${exc.map(l=>`<div class="line">${(draft||mgr)&&!voided?`<button class="x" data-rm="${l.id}">remove</button>`:''}<b>${esc(l.description)}</b><br><small class="muted">${esc(REASONS.find(r=>r[0]===l.exception_code)?.[1]||l.exception_code||'')}${l.qty_expected!=null||l.qty_received!=null?` · expected ${l.qty_expected??'?'} / got ${l.qty_received??'?'} ${esc(l.unit_as_printed||'')}`:''}${l.pack_as_printed?` · ${esc(l.pack_as_printed)}`:''}${l.note?` · ${esc(l.note)}`:''}</small></div>`).join('') || '<p class="muted">None logged.</p>'}</div>
+    ${(draft||mgr)&&!voided?`<button class="btn secondary" id="addLine">+ Something short, damaged or wrong</button>
+    <div id="lineForm" class="hidden">
+      <label>Item as printed on the docket</label><input id="lDesc" placeholder="e.g. Mixed peppers 1x5kg">
+      <label>What's wrong?</label><select id="lReason">${REASONS.map(r=>`<option value="${r[0]}">${r[1]}</option>`).join('')}</select>
+      <div class="row"><div><label>Expected</label><input id="lExp" type="number" inputmode="decimal" step="any"></div><div><label>Received</label><input id="lRec" type="number" inputmode="decimal" step="any"></div><div><label>Unit</label><input id="lUnit" placeholder="case / kg / each"></div></div>
+      <label>Pack as printed <span class="muted">(optional)</span></label><input id="lPack" placeholder="e.g. 2x5kg, 24x330ml">
+      <label>Note <span class="muted">(optional)</span></label><input id="lNote" placeholder="e.g. driver took it back, credit promised">
+      <button class="btn" id="lSave">Add problem</button><div id="lerr"></div></div>`:''}
+  </div>`:''}
+  ${voided?`<div class="card"><h2>Void</h2><p class="muted">${esc(d.note||'')}</p></div>`:''}
+  ${draft?`<div class="card"><h2>Finish</h2>
+    ${isSup?`<button class="btn ok" id="cOk" ${exc.length?'disabled':''}>✓ Everything arrived as printed</button>
+             <button class="btn warn" id="cExc" ${exc.length?'':'disabled'}>Confirm with ${exc.length} problem${exc.length==1?'':'s'}</button>
+             <p class="muted">${exc.length?'Problems are logged — confirm with problems.':'If anything is short, damaged or wrong, add it above first.'}</p>`
+          :`<button class="btn ok" id="cVer">✓ Opened and contents checked</button>
+             <button class="btn secondary" id="cUnk">Save — not opened / contents not checked</button>`}
+    <div id="cerr"></div></div>`:''}
+  ${!draft && !voided && !isSup && d.contents_status!=='verified'?`<div class="card"><h2>Contents</h2><label>What was in it? <span class="muted">(optional)</span></label><input id="vNote"><button class="btn ok" id="vBtn">✓ Mark contents checked</button><div id="verr"></div></div>`:''}
+  ${!voided && mgr?`<div class="card"><h2>Manager</h2><button class="btn secondary" id="voidBtn">Void this delivery</button><div id="voidErr"></div></div>`:''}`;
+
+  // photo uploads
+  app.querySelectorAll('input[type=file]').forEach(inp=> inp.onchange = async ()=>{
+    const files = Array.from(inp.files||[]); if(!files.length) return; const kind = inp.dataset.kind; const err=$('#perr'); err.innerHTML='';
+    for(const f of files){
+      const fig = document.createElement('figure'); fig.className='uploading'; fig.innerHTML=`<img alt=""><figcaption>uploading…</figcaption>`; $('#thumbs').appendChild(fig);
+      try{
+        const blob = await shrink(f); fig.querySelector('img').src = URL.createObjectURL(blob);
+        const path = `deliveries/${d.site_id}/${d.id}/${uuid()}.jpg`;
+        await uploadPhoto(blob, path);
+        await rpc('delivery_add_photo', {p_pin:S.pin, p_id:d.id, p_kind:kind, p_storage_path:path});
+        fig.classList.remove('uploading'); fig.querySelector('figcaption').textContent = kind;
+      }catch(e){ fig.remove(); err.innerHTML=`<div class="err">${esc(e.message)} — try that photo again.</div>`; }
+    }
+    inp.value=''; if(!$('#perr').innerHTML) render();
+  });
+  // lines
+  const addLine=$('#addLine'); if(addLine) addLine.onclick=()=>{ $('#lineForm').classList.toggle('hidden'); $('#lDesc').focus(); };
+  const lSave=$('#lSave'); if(lSave) lSave.onclick = async ()=>{ try{ lSave.disabled=true;
+      await rpc('delivery_add_line',{p_pin:S.pin,p_id:d.id,p_line:{description:$('#lDesc').value, exception_code:$('#lReason').value, qty_expected:$('#lExp').value, qty_received:$('#lRec').value, unit_as_printed:$('#lUnit').value, pack_as_printed:$('#lPack').value, note:$('#lNote').value}});
+      toast('Problem logged'); render(); }catch(e){ $('#lerr').innerHTML=`<div class="err">${esc(e.message)}</div>`; lSave.disabled=false; } };
+  app.querySelectorAll('[data-rm]').forEach(b=> b.onclick = async ()=>{ if(!confirm('Remove this line?')) return; try{ await rpc('delivery_remove_line',{p_pin:S.pin,p_line_id:b.dataset.rm}); render(); }catch(e){ toast(e.message); } });
+  // confirm
+  const conf = async (contents)=>{ try{ const r = await rpc('delivery_confirm',{p_pin:S.pin,p_id:d.id,p_contents:contents}); toast('Confirmed — thanks'); S.view='home'; render(); }catch(e){ $('#cerr').innerHTML=`<div class="err">${esc(e.message)}</div>`; } };
+  const cOk=$('#cOk'); if(cOk) cOk.onclick=()=>conf('confirmed');
+  const cExc=$('#cExc'); if(cExc) cExc.onclick=()=>conf('exceptions');
+  const cVer=$('#cVer'); if(cVer) cVer.onclick=()=>conf('verified');
+  const cUnk=$('#cUnk'); if(cUnk) cUnk.onclick=()=>conf('unknown');
+  const vBtn=$('#vBtn'); if(vBtn) vBtn.onclick = async ()=>{ try{ await rpc('delivery_verify_contents',{p_pin:S.pin,p_id:d.id,p_note:$('#vNote').value}); toast('Contents marked checked'); render(); }catch(e){ $('#verr').innerHTML=`<div class="err">${esc(e.message)}</div>`; } };
+  const voidBtn=$('#voidBtn'); if(voidBtn) voidBtn.onclick = async ()=>{ const why = prompt('Why is this delivery being voided?'); if(!why) return; try{ await rpc('delivery_void',{p_pin:S.pin,p_id:d.id,p_reason:why}); toast('Voided'); S.view='home'; render(); }catch(e){ $('#voidErr').innerHTML=`<div class="err">${esc(e.message)}</div>`; } };
+}
+
+// ---------- header buttons ----------
+$('#backBtn').onclick = ()=>{ S.view = 'home'; render(); };
+$('#logoutBtn').onclick = ()=>{ S.me=null; S.pin=''; sessionStorage.removeItem('boco_deliv_pin'); S.view='login'; render(); };
+
+// ---------- boot ----------
+(async function boot(){
+  if(!URL_ || !KEY){ $('#app').innerHTML='<div class="err">config.js not found — the app cannot reach the database.</div>'; return; }
+  if(S.pin){ try{ S.me = normaliseMe(await rpc('staff_login',{p_pin:S.pin})); if(S.me.site_id) S.site=S.me.site_id; S.view='home'; }catch(e){ S.pin=''; sessionStorage.removeItem('boco_deliv_pin'); } }
+  render();
+})();
+})();
+</script>
+</body>
+</html>
