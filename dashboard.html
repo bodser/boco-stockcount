@@ -122,7 +122,7 @@
 
 <div id="shell" class="hidden">
   <nav id="nav">
-    <div class="brand"><div class="logo">B</div><div><b>BoCo Stock</b><small>Dashboard v1.0</small></div></div>
+    <div class="brand"><div class="logo">B</div><div><b>BoCo Stock</b><small>Dashboard v1.0.1</small></div></div>
     <a class="item" data-p="brief" href="#brief">Brief</a>
     <a class="item" data-p="variance" href="#variance">Variance</a>
     <a class="item" data-p="sales" href="#sales">GP &amp; Sales</a>
@@ -643,7 +643,17 @@ PAGES.settings = async function(main){
         <div><label>Variance worth a look (serves)</label><input type="number" id="setTol" step="1" value="${Number(setting('variance_tolerance_serves',2))}"></div>
         <div><label>Brief recipients (for your notes)</label><input type="text" id="setWho" value="${esc(setting('brief_recipients',''))}"></div>
       </div><div class="tools mt"><div class="sp"></div><button class="btn primary" id="saveNums">Save</button></div></div>
-      <div class="card"><h2>Staff &amp; PINs</h2><div class="muted" style="font-size:12px;margin-bottom:8px">PINs are set from the phone app (manager → staff). Deactivating needs the owner PIN.</div>${table('staff',[{h:'Name',k:'name'},{h:'Role',k:'role',f:x=>`<span class="pill ${x==='owner'?'info':x==='manager'?'ok':''}">${esc(x)}</span>`},{h:'Site',k:'site_id',f:x=>x?SITES[x]||x:'both'},{h:'Active',k:'active',f:x=>x?'yes':'<span class="muted">no</span>'},{h:'',k:'id',f:(x,r)=>r.id===S.me.staff_id?'':`<button class="btn sm ${r.active?'danger':''}" data-staff="${x}" data-act="${r.active?0:1}">${r.active?'Deactivate':'Reactivate'}</button>`}], staff)}</div>
+      <div class="card"><h2>Staff &amp; PINs</h2><div class="muted" style="font-size:12px;margin-bottom:8px">A PIN opens the count app, Deliveries, Goods out and (for managers and owners) this dashboard. PINs are never shown again after they are set — reset one if it is forgotten. Only an owner can create or reset manager and owner PINs.</div>
+        ${table('staff',[{h:'Name',k:'name'},{h:'Role',k:'role',f:x=>`<span class="pill ${x==='owner'?'info':x==='manager'?'ok':''}">${esc(x)}</span>`},{h:'Site',k:'site_id',f:x=>x?SITES[x]||x:'both'},{h:'Active',k:'active',f:x=>x?'yes':'<span class="muted">no</span>'},{h:'',k:'id',f:(x,r)=>{ const canTouch = S.me.role==='owner' || r.role==='staff'; if(!canTouch) return ''; return `${r.active?`<button class="btn sm" data-reset="${x}" data-name="${esc(r.name)}" data-role="${r.role}" data-site="${r.site_id||''}">Reset PIN</button> `:''}${r.id===S.me.staff_id?'':`<button class="btn sm ${r.active?'danger':''}" data-staff="${x}" data-act="${r.active?0:1}">${r.active?'Deactivate':'Reactivate'}</button>`}`; }}], staff.filter(x=>x.active).concat(staff.filter(x=>!x.active)))}
+        <div class="form mt" id="pinForm">
+          <div><label>Name</label><input type="text" id="npName" placeholder="e.g. Siobhan"></div>
+          <div><label>Role</label><select id="npRole"><option value="staff">Staff — count, deliveries, goods out</option>${S.me.role==='owner'?'<option value="manager">Manager — also locks counts, dashboard, voids</option><option value="owner">Owner — everything, incl. staff PINs</option>':''}</select></div>
+          <div><label>Site</label><select id="npSite"><option value="CLT">Clontarf</option><option value="BOL">Bolton Street</option><option value="">Both sites</option></select></div>
+          <div><label>PIN (4–6 digits)</label><input type="text" id="npPin" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••"></div>
+          <div><label>PIN again</label><input type="text" id="npPin2" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••"></div>
+        </div>
+        <div class="tools mt"><span class="muted" id="npMsg"></span><div class="sp"></div><button class="btn primary" id="npAdd">Add PIN</button></div>
+      </div>
     </div>
     <div class="card mt"><h2>Keg weights <span class="r">${exportBtn('kegs','Keg weights')}</span></h2><div class="muted" style="font-size:12px;margin-bottom:8px">Litres remaining = gross weight − empty keg weight (1 litre ≈ 1 kg). Enter the empty weight once you have weighed a real empty of that keg. Leave blank rather than guess.</div>
       <div class="tw" style="max-height:none"><table><thead><tr><th>Keg</th><th class="n">Size (L)</th><th class="n">Empty weight (kg)</th><th class="n">Full weight (kg)</th><th></th></tr></thead><tbody>
@@ -657,7 +667,18 @@ PAGES.settings = async function(main){
   const showNow = ()=>{ const r = stock.rows.find(x=>String(x.stock_item_id)===$('#prItem').value); $('#prNow').textContent = r?`Now: retail ${fmt.eur(r.retail_per_serve,2)} per ${r.retail_serve_ml?Number(r.retail_serve_ml)+' ml':'serve'} · cost ${fmt.eur(r.cost_per_pack,2)} per ${packLabel(r).replace(/s$/,'')}`:''; $('#prServe').value = r?serveMl(r):''; $('#prRetail').value=''; $('#prCost').value=''; };
   showNow(); $('#prItem').onchange=showNow;
   $('#saveNums').onclick = async ()=>{ try{ await P('dash_set_setting',{p_site:site,p_key:'vat_rate',p_value:Number($('#setVat').value)}); await P('dash_set_setting',{p_site:site,p_key:'target_weeks',p_value:Number($('#setWeeks').value)}); await P('dash_set_setting',{p_site:site,p_key:'variance_tolerance_serves',p_value:Number($('#setTol').value)}); await P('dash_set_setting',{p_site:site,p_key:'brief_recipients',p_value:$('#setWho').value}); S.settings[site+':vat_rate']=Number($('#setVat').value); S.settings[site+':target_weeks']=Number($('#setWeeks').value); S.settings[site+':variance_tolerance_serves']=Number($('#setTol').value); S.settings[site+':brief_recipients']=$('#setWho').value; toast('Saved'); }catch(e){ toast(e.message); } };
+  const refreshStaff = async ()=>{ const b = await P('dash_bootstrap',{}); S.boot=b; go('settings',{}); };
+  const setPin = async (name, role, site, pin, replaceId)=>{
+    const res = await P('dash_staff_set_pin',{p_name:name, p_new_pin:pin, p_role:role, p_site:site||null, p_replace_staff_id:replaceId||null});
+    if(res.self){ toast('Your PIN has changed — sign in again with the new one'); setTimeout(signOut, 1200); return; }
+    toast(`${replaceId?'PIN reset':'PIN added'} for ${res.name}`); await refreshStaff(); };
+  $('#npAdd').onclick = async ()=>{ const name=$('#npName').value.trim(), role=$('#npRole').value, site=$('#npSite').value, pin=$('#npPin').value.trim(), pin2=$('#npPin2').value.trim(); const msg=$('#npMsg');
+    if(name.length<2){ msg.textContent='Enter a name'; return; } if(!/^[0-9]{4,6}$/.test(pin)){ msg.textContent='PIN must be 4 to 6 digits'; return; } if(pin!==pin2){ msg.textContent='The two PINs do not match'; return; }
+    if((S.boot.staff||[]).some(x=>x.active && x.name.toLowerCase()===name.toLowerCase()) && !confirm(`There is already an active PIN for ${name}. Add another one anyway? (Use Reset PIN on their row if you meant to replace it.)`)) return;
+    $('#npAdd').disabled=true; msg.textContent=''; try{ await setPin(name, role, site, pin, null); }catch(err){ msg.innerHTML=`<span style="color:var(--bad)">${esc(err.message)}</span>`; $('#npAdd').disabled=false; } };
   main.onclick = async e=>{
+    const rs = e.target.closest('[data-reset]'); if(rs){ const pin = prompt(`New PIN for ${rs.dataset.name} (4–6 digits). The old PIN stops working immediately.`); if(pin===null) return; if(!/^[0-9]{4,6}$/.test(pin.trim())){ toast('PIN must be 4 to 6 digits'); return; }
+      try{ await setPin(rs.dataset.name, rs.dataset.role, rs.dataset.site, pin.trim(), Number(rs.dataset.reset)); }catch(err){ toast(err.message); } return; }
     const ks = e.target.closest('[data-ksave]'); if(ks){ const id=Number(ks.dataset.ksave); const l=$(`[data-kl="${id}"]`).value, w=$(`[data-kw="${id}"]`).value; try{ await P('dash_set_keg',{p_stock_item_id:id, p_keg_size_litres:l===''?null:Number(l), p_empty_kg:w===''?null:Number(w)}); toast('Keg saved'); bust('stock'); bust('review'); }catch(err){ toast(err.message);} return; }
     const st = e.target.closest('[data-staff]'); if(st){ if(st.dataset.act==='0' && !confirm('Deactivate this PIN?')) return; try{ await P('dash_staff_deactivate',{p_staff_id:Number(st.dataset.staff), p_active:st.dataset.act==='1'}); toast('Updated'); const b = await P('dash_bootstrap',{}); S.boot=b; go('settings',{}); }catch(err){ toast(err.message);} }
   };
