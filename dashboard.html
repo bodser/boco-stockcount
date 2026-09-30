@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>BoCo Stock Dashboard</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{--bg:#f6f7f8;--card:#fff;--ink:#111318;--ink2:#3c4150;--muted:#6f7684;--line:#e6e8ec;--line2:#d5d9e0;--accent:#111318;--brand:#b5442b;
+        --ok:#1a7f4b;--okbg:#e8f5ee;--bad:#c62828;--badbg:#fdecec;--warn:#9a6700;--warnbg:#fff6df;--info:#1d4ed8;--infobg:#e8effd;--r:12px;--sh:0 1px 2px rgba(16,24,40,.05)}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  button{font:inherit;cursor:pointer}
+  .hidden{display:none!important}
+  /* ---- login ---- */
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  #login .box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px;width:100%;max-width:380px;box-shadow:0 8px 30px rgba(16,24,40,.06)}
+  #login h1{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+  #login p{margin:0 0 18px;color:var(--muted)}
+  .pinbox{width:100%;font-size:30px;letter-spacing:.45em;text-align:center;padding:12px;border:1px solid var(--line2);border-radius:10px;outline:none}
+  .pinbox:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(17,19,24,.08)}
+  .err{background:var(--badbg);color:var(--bad);border-radius:8px;padding:8px 10px;margin-top:10px;font-size:13px}
+  /* ---- shell ---- */
+  #shell{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+  nav{background:#fff;border-right:1px solid var(--line);padding:18px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2px}
+  nav .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px}
+  nav .logo{width:30px;height:30px;border-radius:8px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+  nav .brand b{display:block;font-size:14px}nav .brand small{color:var(--muted);font-size:12px}
+  nav a.item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;text-decoration:none;color:var(--ink2);font-weight:500}
+  nav a.item:hover{background:#f1f2f4}nav a.item.on{background:var(--ink);color:#fff}
+  nav a.item .n{margin-left:auto;font-size:11px;background:var(--badbg);color:var(--bad);border-radius:999px;padding:1px 7px;font-weight:600}
+  nav a.item.on .n{background:rgba(255,255,255,.2);color:#fff}
+  nav .sp{flex:1}
+  nav .me{padding:10px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+  nav .me b{display:block;color:var(--ink);font-size:13px}
+  nav .me button{background:none;border:0;color:var(--muted);padding:0;margin-top:4px;text-decoration:underline}
+  main{padding:22px 28px 60px;min-width:0}
+  .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  .top h1{font-size:22px;margin:0;letter-spacing:-.01em;flex:1}
+  .top .sub{color:var(--muted);font-size:13px;width:100%}
+  select,input[type=text],input[type=number],input[type=date],input[type=datetime-local],input[type=search]{font:inherit;padding:8px 10px;border:1px solid var(--line2);border-radius:8px;background:#fff;color:var(--ink);min-height:36px}
+  select:focus,input:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(17,19,24,.08)}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid var(--line2);background:#fff;color:var(--ink);font-weight:500;white-space:nowrap}
+  .btn:hover{background:#f6f7f8}.btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}.btn.primary:hover{background:#2a2e38}
+  .btn.sm{padding:5px 10px;font-size:12px}.btn.danger{color:var(--bad);border-color:#f1c0c0}.btn:disabled{opacity:.5;cursor:default}
+  .seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:#fff}
+  .seg button{border:0;background:#fff;padding:7px 12px;color:var(--ink2);font-weight:500}.seg button.on{background:var(--ink);color:#fff}
+  /* ---- cards & grids ---- */
+  .grid{display:grid;gap:14px}
+  .g4{grid-template-columns:repeat(4,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);min-width:0}
+  .card h2{font-size:13px;margin:0 0 10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+  .card h2 .r{margin-left:auto;display:flex;gap:6px;font-weight:500;text-transform:none;letter-spacing:0}
+  .kpi .v{font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+  .kpi .d{color:var(--muted);font-size:12px;margin-top:6px}
+  .kpi .v.good{color:var(--ok)}.kpi .v.bad{color:var(--bad)}
+  .kpi svg{display:block;margin-top:8px}
+  .mt{margin-top:14px}
+  .muted{color:var(--muted)}
+  .pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#eef0f3;color:var(--ink2);white-space:nowrap}
+  .pill.ok{background:var(--okbg);color:var(--ok)}.pill.bad{background:var(--badbg);color:var(--bad)}.pill.warn{background:var(--warnbg);color:var(--warn)}.pill.info{background:var(--infobg);color:var(--info)}
+  .empty{padding:26px;text-align:center;color:var(--muted);border:1px dashed var(--line2);border-radius:10px}
+  .note{background:var(--infobg);color:#1e3a8a;border-radius:8px;padding:10px 12px;font-size:13px}
+  .warnnote{background:var(--warnbg);color:#7a5200;border-radius:8px;padding:10px 12px;font-size:13px}
+  /* ---- tables ---- */
+  .tw{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:10px;background:#fff}
+  table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;vertical-align:middle}
+  th{position:sticky;top:0;background:#fafbfc;color:var(--muted);font-weight:600;font-size:12px;z-index:1;cursor:pointer;user-select:none}
+  th.s::after{content:" ↕";opacity:.4}th.asc::after{content:" ↑";opacity:1}th.desc::after{content:" ↓";opacity:1}
+  td.n,th.n{text-align:right}td.neg{color:var(--bad)}td.pos{color:var(--ok)}
+  tr:hover td{background:#fafbfc}
+  tfoot td{font-weight:600;background:#fafbfc;position:sticky;bottom:0}
+  td .sub{display:block;color:var(--muted);font-size:11px;white-space:normal}
+  .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .tools .sp{flex:1}
+  .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;min-width:80px}.bar i{display:block;height:100%;background:var(--bad)}.bar i.ok{background:var(--ok)}
+  .list{margin:0;padding:0;list-style:none}.list li{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);align-items:center}.list li:first-child{border-top:0}
+  .list li .t{flex:1;min-width:0}.list li .t b{display:block;font-weight:500}.list li .t small{color:var(--muted)}
+  .list li .v{font-weight:600;white-space:nowrap}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99}
+  .toast.show{opacity:1}
+  .brieftext{white-space:pre-wrap;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#fafbfc;border:1px solid var(--line);border-radius:8px;padding:10px;max-height:300px;overflow:auto}
+  .form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+  .form label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .form input,.form select{width:100%}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px}.kv dt{color:var(--muted)}.kv dd{margin:0}
+  .drop{border:2px dashed var(--line2);border-radius:10px;padding:18px;text-align:center;color:var(--muted)}
+  .drop.on{border-color:var(--ink);background:#fafbfc}
+  .modal{position:fixed;inset:0;background:rgba(17,19,24,.35);display:grid;place-items:center;z-index:50;padding:20px}
+  .modal .box{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
+  .modal h3{margin:0 0 12px;font-size:16px}
+  @media (max-width:980px){
+    #shell{grid-template-columns:1fr}
+    nav{position:sticky;height:auto;flex-direction:row;flex-wrap:wrap;gap:4px;padding:10px;border-right:0;border-bottom:1px solid var(--line);z-index:5}
+    nav .brand{padding:4px 8px;width:100%}nav .sp,nav .me{display:none}nav a.item{padding:7px 10px;font-size:13px}
+    main{padding:16px}.g4,.g3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:600px){.g4,.g3,.g2{grid-template-columns:1fr}.kpi .v{font-size:24px}}
+  @media print{
+    nav,.tools,.top select,.top .btn,.top .seg,.noprint,.toast{display:none!important}
+    #shell{display:block}main{padding:0}body{background:#fff;font-size:12px}
+    .tw{max-height:none;overflow:visible;border:0}th{position:static}.card{box-shadow:none;break-inside:avoid}
+    .grid{display:block}.grid>.card{margin-bottom:10px}
+    @page{size:A4 landscape;margin:12mm}
+  }
+</style>
+</head>
+<body>
+<div id="login">
+  <div class="box">
+    <h1>BoCo Stock Dashboard</h1>
+    <p>Manager or owner PIN.</p>
+    <input class="pinbox" id="pin" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••">
+    <button class="btn primary" id="pinGo" style="width:100%;justify-content:center;margin-top:12px;padding:11px">Open dashboard</button>
+    <div class="err hidden" id="pinErr"></div>
+    <p class="muted" style="margin:14px 0 0;font-size:12px">Reads the shared BoCo database. Nothing here is visible without a manager PIN.</p>
+  </div>
+</div>
+
+<div id="shell" class="hidden">
+  <nav id="nav">
+    <div class="brand"><div class="logo">B</div><div><b>BoCo Stock</b><small>Dashboard v1.0</small></div></div>
+    <a class="item" data-p="brief" href="#brief">Brief</a>
+    <a class="item" data-p="variance" href="#variance">Variance</a>
+    <a class="item" data-p="sales" href="#sales">GP &amp; Sales</a>
+    <a class="item" data-p="stock" href="#stock">Stock &amp; Ordering</a>
+    <a class="item" data-p="deliveries" href="#deliveries">Deliveries &amp; credits</a>
+    <a class="item" data-p="goodsout" href="#goodsout">Goods out</a>
+    <a class="item" data-p="prices" href="#prices">Price watch</a>
+    <a class="item" data-p="synergy" href="#synergy">Synergy compare</a>
+    <a class="item" data-p="review" href="#review">Review queue <span class="n hidden" id="navReview"></span></a>
+    <a class="item" data-p="settings" href="#settings">Settings</a>
+    <div class="sp"></div>
+    <div class="me"><b id="meName">…</b><span id="meRole"></span><br><button id="logout">Sign out</button></div>
+  </nav>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script src="vendor/xlsx.full.min.js"></script>
+<script>if(!window.XLSX){document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>');}</script>
+<script>
+(function(){
+'use strict';
+// ============================================================ data layer
+const CFG = window.BOCO_CONFIG || {};
+const SITES = {CLT:'Clontarf', BOL:'Bolton Street'};
+const $ = (s, el) => (el||document).querySelector(s);
+const $$ = (s, el) => Array.from((el||document).querySelectorAll(s));
+const S = { pin: sessionStorage.getItem('boco_dash_pin') || '', me:null, boot:null, site: localStorage.getItem('boco_dash_site') || 'CLT',
+            page:'brief', cache:{}, settings:{}, unit: localStorage.getItem('boco_dash_unit') || 'serves' };
+async function rpc(fn, args){
+  const r = await fetch(CFG.url.replace(/\/+$/,'') + '/rest/v1/rpc/' + fn, {method:'POST',
+    headers:{apikey:CFG.key, Authorization:'Bearer '+CFG.key, 'Content-Type':'application/json'}, body: JSON.stringify(args)});
+  const t = await r.text(); let j=null; try{ j = t ? JSON.parse(t) : null; }catch(e){}
+  if(!r.ok) throw new Error((j && (j.message||j.hint)) || t || ('error '+r.status));
+  return j;
+}
+const P = (fn, args) => rpc(fn, Object.assign({p_pin:S.pin}, args||{}));
+async function cached(key, loader){ if(S.cache[key]) return S.cache[key]; const v = await loader(); S.cache[key]=v; return v; }
+function bust(prefix){ Object.keys(S.cache).forEach(k=>{ if(!prefix || k.startsWith(prefix)) delete S.cache[k]; }); }
+function setting(key, dflt){ const v = S.settings[S.site+':'+key]; if(v!==undefined) return v; const g = S.settings['*:'+key]; return g!==undefined ? g : dflt; }
+const VAT = () => Number(setting('vat_rate', 23))/100;
+
+// ============================================================ formatting helpers
+const fmt = {
+  eur:(n,dp)=> n==null||isNaN(n) ? '—' : (n<0?'−':'') + '€' + Math.abs(n).toLocaleString('en-IE',{minimumFractionDigits:dp==null?0:dp, maximumFractionDigits:dp==null?0:dp}),
+  num:(n,dp)=> n==null||isNaN(n) ? '—' : Number(n).toLocaleString('en-IE',{minimumFractionDigits:dp||0, maximumFractionDigits:dp==null?1:dp}),
+  pct:(n,dp)=> n==null||isNaN(n) ? '—' : Number(n).toFixed(dp==null?1:dp)+'%',
+  sgn:(n,dp)=> n==null||isNaN(n) ? '—' : (n>0?'+':'') + fmt.num(n,dp),
+  date:(d)=> d ? new Date(d).toLocaleDateString('en-IE',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—',
+  dt:(d)=> d ? new Date(d).toLocaleString('en-IE',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—',
+  short:(d)=> d ? new Date(d).toLocaleDateString('en-IE',{day:'numeric',month:'short'}) : '—'
+};
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function packSize(r){ return r.base_unit==='each' ? 1 : (Number(r.pack_size)||1); }
+function serveMl(r){ return Number(r.serve_ml) || (r.base_unit==='each' ? 1 : 35.5); }
+function serves(r, base){ return base==null ? null : Number(base)/serveMl(r); }
+function packs(r, base){ return base==null ? null : Number(base)/packSize(r); }
+function serveLabel(r){
+  if(r.base_unit==='each') return 'units';
+  const ml = serveMl(r);
+  if(ml>=500) return 'pints'; if(ml>=100) return 'glasses'; return 'measures';
+}
+function packLabel(r){
+  if(r.stock_type==='keg') return 'kegs'; if(r.base_unit==='each') return 'units';
+  if(r.stock_type==='syrup') return 'bottles'; return 'bottles';
+}
+function qty(r, base){ return S.unit==='packs' ? packs(r, base) : serves(r, base); }
+function qtyLabel(r){ return S.unit==='packs' ? packLabel(r) : serveLabel(r); }
+function costOf(r, base){ return r.cost_per_pack==null||base==null ? null : packs(r, base) * Number(r.cost_per_pack); }
+function retailOf(r, base){ if(r.retail_per_serve==null||base==null) return null; const ml = Number(r.retail_serve_ml)||serveMl(r); return Number(base)/ml*Number(r.retail_per_serve); }
+function cls(n){ return n>0.0001 ? 'pos' : n<-0.0001 ? 'neg' : ''; }
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600); }
+function spark(vals, w, h, color){
+  w=w||120; h=h||28; const v = vals.filter(x=>x!=null); if(v.length<2) return '';
+  const min=Math.min(...v,0), max=Math.max(...v,0), rng=(max-min)||1;
+  const pts = vals.map((y,i)=> [ (i/(vals.length-1))*(w-4)+2, h-2-((y-min)/rng)*(h-4) ]);
+  const zero = h-2-((0-min)/rng)*(h-4);
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><line x1="0" x2="${w}" y1="${zero}" y2="${zero}" stroke="#e6e8ec"/><polyline fill="none" stroke="${color||'#111318'}" stroke-width="1.6" points="${pts.map(p=>p.map(n=>n.toFixed(1)).join(',')).join(' ')}"/>${pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2" fill="${color||'#111318'}"/>`).join('')}</svg>`;
+}
+
+// ============================================================ tables (sort + export)
+const TABLES = {};
+function table(id, cols, rows, opts){
+  opts = opts||{}; TABLES[id] = {cols, rows, opts};
+  const st = TABLES[id].sort = TABLES[id].sort || opts.sort || null;
+  return renderTable(id);
+}
+function renderTable(id){
+  const T = TABLES[id]; let rows = T.rows.slice();
+  if(T.sort){ const c = T.cols.find(c=>c.k===T.sort.k); rows.sort((a,b)=>{ let x=c.v?c.v(a):a[c.k], y=c.v?c.v(b):b[c.k]; const xn = x==null||x==='', yn = y==null||y==='';
+    if(xn||yn) return xn&&yn ? 0 : xn ? 1 : -1;
+    if(typeof x==='string' || typeof y==='string') return String(x).localeCompare(String(y)) * (T.sort.d==='asc'?1:-1); return (x-y)*(T.sort.d==='asc'?1:-1); }); }
+  T.sorted = rows;
+  const head = T.cols.map(c=>`<th class="${c.n?'n ':''}s ${T.sort&&T.sort.k===c.k?T.sort.d:''}" data-t="${id}" data-k="${c.k}">${esc(c.h)}</th>`).join('');
+  const body = rows.map((r,i)=>'<tr'+(T.opts.rowAttr?T.opts.rowAttr(r,i):'')+'>'+T.cols.map(c=>{ const v = c.v?c.v(r):r[c.k]; const txt = c.f ? c.f(v,r) : esc(v==null?'—':v);
+    return `<td class="${c.n?'n':''} ${c.c?c.c(v,r):''}">${txt}</td>`; }).join('')+'</tr>').join('');
+  let foot=''; if(T.opts.totals){ foot='<tfoot><tr>'+T.cols.map(c=>{ const t=T.opts.totals[c.k]; if(t===undefined) return '<td></td>'; const val = typeof t==='function'?t(rows):t; return `<td class="${c.n?'n':''} ${c.c&&typeof val==='number'?c.c(val,{}):''}">${c.f&&typeof val==='number'?c.f(val,{}):esc(val)}</td>`; }).join('')+'</tr></tfoot>'; }
+  return `<div class="tw" id="tw-${id}"><table><thead><tr>${head}</tr></thead><tbody>${body||`<tr><td colspan="${T.cols.length}" class="muted" style="text-align:center;padding:22px">Nothing to show</td></tr>`}</tbody>${foot}</table></div>`;
+}
+document.addEventListener('click', e=>{
+  const th = e.target.closest('th[data-t]'); if(!th) return; const T = TABLES[th.dataset.t]; if(!T) return;
+  const k = th.dataset.k; T.sort = (T.sort && T.sort.k===k) ? {k, d: T.sort.d==='asc'?'desc':'asc'} : {k, d:'desc'};
+  $('#tw-'+th.dataset.t).outerHTML = renderTable(th.dataset.t);
+});
+function exportXlsx(id, name){
+  const T = TABLES[id]; if(!T){ toast('Nothing to export'); return; }
+  const rows = (T.sorted||T.rows).map(r=>{ const o={}; T.cols.forEach(c=>{ let v=c.v?c.v(r):r[c.k]; if(c.x) v=c.x(v,r); if(typeof v==='number') v=Math.round(v*1000)/1000; o[c.h]=v==null?'':v; }); return o; });
+  const fname = `${(name||id).replace(/[^\w\- ]+/g,'_')}_${SITES[S.site]||''}_${new Date().toISOString().slice(0,10)}`;
+  if(!window.XLSX){ const hdr = T.cols.map(c=>c.h); const csv = [hdr].concat(rows.map(o=>hdr.map(h=>{ const v=o[h]; const s=String(v==null?'':v); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }))).map(r=>r.join(',')).join('\r\n');
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'})); a.download=fname+'.csv'; a.click(); toast('Excel library not loaded — exported CSV instead'); return; }
+  const ws = XLSX.utils.json_to_sheet(rows); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, (name||id).slice(0,31));
+  XLSX.writeFile(wb, fname+'.xlsx');
+}
+function exportBtn(id, name){ return `<button class="btn sm" data-x="${id}" data-xn="${esc(name||id)}">Export Excel</button>`; }
+document.addEventListener('click', e=>{ const b=e.target.closest('[data-x]'); if(b) exportXlsx(b.dataset.x, b.dataset.xn); });
+
+// ============================================================ period helpers
+function sessionsFor(site){ return (S.boot.sessions||[]).filter(s=>s.site_id===site); }
+function lockedFor(site){ return sessionsFor(site).filter(s=>s.status==='locked').sort((a,b)=>new Date(a.cutoff_at)-new Date(b.cutoff_at)); }
+function periodsFor(site){ const L = lockedFor(site); return L.slice(1).map((s,i)=>({session:s, prev:L[i], label:`${fmt.date(L[i].cutoff_at)} → ${fmt.date(s.cutoff_at)}`})).reverse(); }
+async function variance(sessionId){ return cached('var:'+sessionId, ()=>P('dash_variance',{p_session_id:sessionId})); }
+function periodTotals(v){
+  const t = {retail:0, cost:0, sales_retail:0, cos:0, waste_cost:0, waste_retail:0, deliveries_cost:0, opening_cost:0, closing_cost:0, rows:0, uncosted:0, unpriced:0, losers:[], days:null, transfers_cost:0};
+  if(!v) return t;
+  t.days = v.period_start ? Math.round((new Date(v.period_end)-new Date(v.period_start))/86400000) : null;
+  v.rows.forEach(r=>{
+    t.rows++;
+    const vc = costOf(r, r.variance_base), vr = retailOf(r, r.variance_base);
+    if(vc==null) t.uncosted++; else t.cost += vc;
+    if(vr==null) t.unpriced++; else t.retail += vr;
+    const sr = retailOf(r, r.sales_usage); if(sr!=null) t.sales_retail += sr;
+    const used = Number(r.opening) - Number(r.closing) + Number(r.deliveries) + Number(r.returns) + Number(r.transfers);
+    const cc = costOf(r, used); if(cc!=null) t.cos += cc;
+    const oc = costOf(r, r.opening); if(oc!=null) t.opening_cost += oc;
+    const cl = costOf(r, r.closing); if(cl!=null) t.closing_cost += cl;
+    const dc = costOf(r, r.deliveries); if(dc!=null) t.deliveries_cost += dc;
+    const tc = costOf(r, r.transfers); if(tc!=null) t.transfers_cost += tc;
+    const adj = Number(r.adjustments) - Number(r.rebase_base||0);
+    if(adj<0){ const wc = costOf(r, -adj); if(wc!=null) t.waste_cost += wc; const wr = retailOf(r, -adj); if(wr!=null) t.waste_retail += wr; }
+    t.losers.push({r, vr:vr==null?0:vr, vc:vc==null?0:vc, vs:serves(r, r.variance_base)});
+  });
+  t.sales_ex = t.sales_retail/(1+VAT());
+  t.gp = t.sales_ex>0 ? (t.sales_ex - t.cos)/t.sales_ex*100 : null;
+  t.losers.sort((a,b)=>a.vr-b.vr);
+  return t;
+}
+function synergyFor(site, cutoff){ const d = new Date(cutoff).toISOString().slice(0,10); return (S.boot.synergy_periods||[]).find(p=>p.site_id===site && p.stock_date===d); }
+
+// ============================================================ pages
+const PAGES = {};
+function siteSel(){ return `<select id="siteSel">${Object.keys(SITES).map(k=>`<option value="${k}" ${k===S.site?'selected':''}>${SITES[k]}</option>`).join('')}</select>`; }
+function unitSeg(){ return `<div class="seg" id="unitSeg"><button data-u="serves" class="${S.unit==='serves'?'on':''}">Serves</button><button data-u="packs" class="${S.unit==='packs'?'on':''}">Packs</button></div>`; }
+function periodSel(id, site, selected){ const ps = periodsFor(site); if(!ps.length) return `<span class="pill warn">No completed period yet</span>`;
+  return `<select id="${id}">${ps.map(p=>`<option value="${p.session.id}" ${String(p.session.id)===String(selected)?'selected':''}>${p.label}</option>`).join('')}</select>`; }
+function pickPeriod(site, id){ const ps = periodsFor(site); if(!ps.length) return null; return ps.find(p=>String(p.session.id)===String(id)) || ps[0]; }
+function head(title, right, sub){ return `<div class="top"><h1>${title}</h1>${right||''}${sub?`<div class="sub">${sub}</div>`:''}</div>`; }
+
+// ---------- Brief
+PAGES.brief = async function(main, q){
+  const site = S.site, per = pickPeriod(site, q.session);
+  main.innerHTML = head('Brief', `${siteSel()} ${per?periodSel('perSel', site, per.session.id):''} <button class="btn" id="copyBrief">Copy the brief</button> <button class="btn" onclick="window.print()">Print / PDF</button>`, `<span class="muted">Loading…</span>`);
+  const [v, stock, review, prices, mov] = await Promise.all([
+    per ? variance(per.session.id) : null,
+    cached('stock:'+site, ()=>P('dash_stock',{p_site:site})),
+    cached('review:'+site, ()=>P('dash_review',{p_site:site})),
+    cached('prices', ()=>P('dash_prices',{p_days:120})),
+    cached('mov7:'+site, ()=>P('dash_movements',{p_site:site, p_from:new Date(Date.now()-28*86400000).toISOString(), p_to:new Date(Date.now()+86400000).toISOString()}))
+  ]);
+  const t = periodTotals(v); const syn = per ? synergyFor(site, per.session.cutoff_at) : null;
+  // history sparkline across all periods (fetch lazily, cached)
+  const hist = []; for(const p of periodsFor(site).slice().reverse()){ const pv = await variance(p.session.id); const pt = periodTotals(pv); hist.push({label:fmt.short(p.session.cutoff_at), retail:pt.retail, gp:pt.gp, waste:pt.waste_cost}); }
+  const open = stock.open_session;
+  const reviewN = Object.values(review).reduce((a,b)=>a+(b||[]).length,0); setNavReview(reviewN);
+  const recentWaste = mov.filter(m=>!m.voided && ['waste','comp'].includes(m.type)); const wasteCost = recentWaste.reduce((a,m)=>a+(costOf(m,-m.qty_base)||0),0);
+  const recentDeliv = mov.filter(m=>!m.voided && m.type==='delivery'); const delivCost = recentDeliv.reduce((a,m)=>a+(costOf(m,m.qty_base)||0),0);
+  const priceUp = prices.filter(p=>p.previous!=null && p.cost_per_pack>p.previous*1.02 && new Date(p.effective_from)>Date.now()-30*86400000);
+  const sub = per ? `Period ${per.label} (${t.days} days) · ${t.rows} items with movement · costs known for ${t.rows-t.uncosted}, retail prices for ${t.rows-t.unpriced}` : `No completed count period for ${SITES[site]} yet — the first two locked counts create one.`;
+  $('.top .sub', main).innerHTML = sub;
+  const kpi = (label, val, d, c, sp) => `<div class="card kpi"><h2>${label}</h2><div class="v ${c||''}">${val}</div><div class="d">${d||''}</div>${sp||''}</div>`;
+  main.insertAdjacentHTML('beforeend', `
+  <div class="grid g4">
+    ${kpi('Variance at retail', per?fmt.eur(t.retail):'—', per?`${fmt.eur(t.cost)} at cost · ${t.retail<0?'loss':'gain'} for the period`:'', per?(t.retail<-1?'bad':'good'):'', spark(hist.map(h=>h.retail),140,30,t.retail<0?'#c62828':'#1a7f4b'))}
+    ${kpi('Gross profit', per&&t.gp!=null?fmt.pct(t.gp):'—', per?(syn?`Synergy said ${fmt.pct(syn.gp_actual_pct)} · sales ${fmt.eur(t.sales_retail)} inc VAT`:`on ${fmt.eur(t.sales_retail)} sales inc VAT`):'', '', spark(hist.map(h=>h.gp),140,30,'#111318'))}
+    ${kpi('Waste & comps (28 days)', fmt.eur(wasteCost), `${recentWaste.length} entries logged on the phone${per?` · ${fmt.eur(t.waste_cost)} written off in the period`:''}`, wasteCost>0?'bad':'')}
+    ${kpi('Deliveries (28 days)', fmt.eur(delivCost), `${recentDeliv.length} lines received at cost${per?` · ${fmt.eur(t.deliveries_cost)} purchases in the period`:''}`)}
+  </div>
+  <div class="grid g3 mt">
+    <div class="card"><h2>Tonight's count</h2>${open ? `<div class="kv"><dt>Status</dt><dd><span class="pill ${open.status==='counting'?'info':'warn'}">${open.status}</span></dd><dt>Opened</dt><dd>${fmt.dt(open.opened_at)} by ${esc(open.opened_by||'—')}</dd><dt>Progress</dt><dd>${open.lines} of ${open.items} items</dd><dt>Counting</dt><dd>${(open.counters||[]).filter(Boolean).map(esc).join(', ')||'—'}</dd></div><div class="bar mt"><i class="ok" style="width:${Math.min(100,Math.round(open.lines/Math.max(1,open.items)*100))}%"></i></div>` : `<div class="empty">No count open at ${SITES[site]}.<br><small>Staff open one from the phone app.</small></div>`}
+      ${stock.as_of_session?`<div class="muted mt" style="font-size:12px">Last locked count: ${fmt.dt(stock.as_of_session.cutoff_at)}</div>`:''}</div>
+    <div class="card"><h2>Biggest losses <span class="r"><a class="btn sm" href="#variance">Open variance</a></span></h2>
+      ${per ? `<ul class="list">${t.losers.slice(0,8).map(l=>`<li><div class="t"><b>${esc(l.r.item)}</b><small>${fmt.sgn(l.vs,1)} ${serveLabel(l.r)}${l.r.retail_per_serve==null?' · no retail price':''}</small></div><div class="v ${cls(l.vr)}" style="color:${l.vr<0?'var(--bad)':'var(--ok)'}">${fmt.eur(l.vr)}</div></li>`).join('')}</ul>` : '<div class="empty">Needs a completed period.</div>'}</div>
+    <div class="card"><h2>Needs attention <span class="r"><a class="btn sm" href="#review">Review queue</a></span></h2>
+      <ul class="list">
+        <li><div class="t"><b>Till products not mapped</b><small>Sales that could not be turned into stock usage</small></div><div class="v">${review.unmatched_till.length}</div></li>
+        <li><div class="t"><b>Delivery lines not posted</b><small>Received but not matched to a stock item</small></div><div class="v">${review.unposted_delivery_lines.length}</div></li>
+        <li><div class="t"><b>Credits pending</b><small>Shorts, damages, returns awaiting credit</small></div><div class="v">${review.pending_credits.length}</div></li>
+        <li><div class="t"><b>Items with no cost</b><small>Excluded from € figures until an invoice lands</small></div><div class="v">${review.no_cost.length}</div></li>
+        <li><div class="t"><b>Kegs without an empty weight</b><small>Open kegs counted by eye until set</small></div><div class="v">${review.kegs_without_weight.length}</div></li>
+        <li><div class="t"><b>Price rises (30 days)</b><small>${priceUp.slice(0,3).map(p=>esc(p.item)).join(', ')||'none'}</small></div><div class="v">${priceUp.length}</div></li>
+      </ul></div>
+  </div>
+  <div class="grid g2 mt">
+    <div class="card"><h2>Period history</h2>${hist.length ? table('hist', [
+        {h:'Period ending',k:'label'},{h:'Variance at retail',k:'retail',n:1,f:v=>fmt.eur(v),c:v=>cls(v)},{h:'GP %',k:'gp',n:1,f:v=>fmt.pct(v)},{h:'Waste at cost',k:'waste',n:1,f:v=>fmt.eur(v)}
+      ], hist.slice().reverse()) : '<div class="empty">No history yet.</div>'}</div>
+    <div class="card"><h2>The brief, in words <span class="r"><button class="btn sm" id="copyBrief2">Copy</button></span></h2><div class="brieftext" id="briefText"></div></div>
+  </div>`);
+  // brief text
+  const lines = [`BoCo ${SITES[site]} — stock brief, ${fmt.date(new Date())}`];
+  if(per){
+    lines.push(`Period ${per.label} (${t.days} days).`);
+    lines.push(`Variance: ${fmt.eur(t.retail)} at retail (${fmt.eur(t.cost)} at cost) across ${t.rows} items.`);
+    if(t.gp!=null) lines.push(`Gross profit ${fmt.pct(t.gp)} on ${fmt.eur(t.sales_retail)} sales inc VAT${syn?` (Synergy reported ${fmt.pct(syn.gp_actual_pct)})`:''}.`);
+    lines.push(`Written off in the period: ${fmt.eur(t.waste_cost)} at cost. Purchases ${fmt.eur(t.deliveries_cost)}.`);
+    const L = t.losers.filter(l=>l.vr<-1).slice(0,5); if(L.length) lines.push(`Biggest losses: ${L.map(l=>`${l.r.item} ${fmt.sgn(l.vs,0)} ${serveLabel(l.r)} (${fmt.eur(l.vr)})`).join('; ')}.`);
+    const G = t.losers.filter(l=>l.vr>5).slice(-3).reverse(); if(G.length) lines.push(`Surpluses to check: ${G.map(l=>`${l.r.item} ${fmt.sgn(l.vs,0)} ${serveLabel(l.r)}`).join('; ')}.`);
+  } else lines.push('No completed count period yet.');
+  lines.push(`Last 28 days on the phone: ${recentWaste.length} waste/comp entries (${fmt.eur(wasteCost)}), ${recentDeliv.length} delivery lines (${fmt.eur(delivCost)}).`);
+  if(open) lines.push(`Count in progress: ${open.lines}/${open.items} items, opened ${fmt.dt(open.opened_at)} by ${open.opened_by||'—'}.`);
+  lines.push(`Needs attention: ${review.unmatched_till.length} unmapped till products, ${review.unposted_delivery_lines.length} unposted delivery lines, ${review.pending_credits.length} credits pending, ${review.no_cost.length} items without a cost, ${review.kegs_without_weight.length} kegs without an empty weight, ${priceUp.length} price rises.`);
+  $('#briefText').textContent = lines.join('\n');
+  const copy = ()=>navigator.clipboard.writeText($('#briefText').textContent).then(()=>toast('Brief copied'), ()=>toast('Copy failed — select the text instead'));
+  $('#copyBrief').onclick = copy; $('#copyBrief2').onclick = copy;
+  if($('#perSel')) $('#perSel').onchange = e=>go('brief',{session:e.target.value});
+};
+
+// ---------- Variance
+PAGES.variance = async function(main, q){
+  const site=S.site, per = pickPeriod(site, q.session);
+  main.innerHTML = head('Variance', `${siteSel()} ${per?periodSel('perSel', site, per.session.id):''} ${unitSeg()}`, per?`Opening + deliveries + returns ± transfers − waste − sales = should have; variance = counted − should have. Serves are pints, glasses or measures; € at cost and at retail inc VAT.`:'No completed period yet.');
+  if(!per){ main.insertAdjacentHTML('beforeend','<div class="empty">Two locked counts are needed to make a period.</div>'); return; }
+  const v = await variance(per.session.id); const t = periodTotals(v);
+  const groups = Array.from(new Set(v.rows.map(r=>r.report_group||r.section))).sort();
+  const tol = Number(setting('variance_tolerance_serves', 2));
+  const state = {g:'', s:'', only:false};
+  const render = ()=>{
+    let rows = v.rows.filter(r=>(!state.g || (r.report_group||r.section)===state.g) && (!state.s || r.item.toLowerCase().includes(state.s)) && (!state.only || Math.abs(serves(r,r.variance_base))>=tol));
+    rows = rows.map(r=>Object.assign({}, r, {_vs:serves(r,r.variance_base), _vq:qty(r,r.variance_base), _vc:costOf(r,r.variance_base), _vr:retailOf(r,r.variance_base), _pct: Number(r.sales_usage)>0 ? Number(r.variance_base)/Number(r.sales_usage)*100 : null}));
+    const cols = [
+      {h:'Item',k:'item',f:(x,r)=>`${esc(x)}<span class="sub">${esc(r.report_subgroup||r.section)}${!r.counted_now?' · <b>not counted</b>':''}${r.cost_per_pack==null?' · no cost':''}</span>`},
+      {h:'Opening',k:'opening',n:1,v:r=>qty(r,r.opening),f:x=>fmt.num(x,1)},
+      {h:'Deliveries',k:'deliveries',n:1,v:r=>qty(r,r.deliveries),f:x=>fmt.num(x,1)},
+      {h:'Returns',k:'returns',n:1,v:r=>qty(r,r.returns),f:x=>fmt.num(x,1)},
+      {h:'Transfers',k:'transfers',n:1,v:r=>qty(r,Number(r.transfers)+Number(r.rebase_base||0)),f:(x,r)=>`${fmt.sgn(x,1)}${Number(r.rebase_base||0)?'<span class="sub">incl. Synergy re-base</span>':''}`},
+      {h:'Waste / adj.',k:'adjustments',n:1,v:r=>qty(r,Number(r.adjustments)-Number(r.rebase_base||0)),f:x=>fmt.sgn(x,1),c:x=>x<0?'neg':''},
+      {h:'Sales',k:'sales_usage',n:1,v:r=>qty(r,r.sales_usage),f:x=>fmt.num(x,1)},
+      {h:'Should have',k:'should_have',n:1,v:r=>qty(r,r.should_have),f:x=>fmt.num(x,1)},
+      {h:'Counted',k:'closing',n:1,v:r=>qty(r,r.closing),f:x=>fmt.num(x,1)},
+      {h:`Variance (${S.unit})`,k:'_vq',n:1,f:(x,r)=>`${fmt.sgn(x,1)}<span class="sub">${r.item?qtyLabel(r):''}</span>`,c:cls},
+      {h:'% of sales',k:'_pct',n:1,f:x=>fmt.pct(x)},
+      {h:'€ at cost',k:'_vc',n:1,f:x=>fmt.eur(x,2),c:cls},
+      {h:'€ at retail',k:'_vr',n:1,f:x=>fmt.eur(x,2),c:cls}
+    ];
+    $('#vt').innerHTML = table('variance', cols, rows, {sort:{k:'_vr',d:'asc'}, totals:{item:`${rows.length} items`, _vc:rs=>rs.reduce((a,r)=>a+(r._vc||0),0), _vr:rs=>rs.reduce((a,r)=>a+(r._vr||0),0)}});
+  };
+  main.insertAdjacentHTML('beforeend', `
+    <div class="grid g4">
+      <div class="card kpi"><h2>Variance at retail</h2><div class="v ${t.retail<-1?'bad':'good'}">${fmt.eur(t.retail)}</div><div class="d">${fmt.eur(t.cost)} at cost</div></div>
+      <div class="card kpi"><h2>Sales at retail</h2><div class="v">${fmt.eur(t.sales_retail)}</div><div class="d">inc VAT · ${fmt.eur(t.sales_ex)} ex VAT</div></div>
+      <div class="card kpi"><h2>Cost of sales</h2><div class="v">${fmt.eur(t.cos)}</div><div class="d">opening ${fmt.eur(t.opening_cost)} + purchases ${fmt.eur(t.deliveries_cost)} − closing ${fmt.eur(t.closing_cost)}</div></div>
+      <div class="card kpi"><h2>Gross profit</h2><div class="v">${fmt.pct(t.gp)}</div><div class="d">${t.uncosted?`${t.uncosted} items have no cost yet`:'all items costed'}</div></div>
+    </div>
+    <div class="card mt"><div class="tools"><select id="gSel"><option value="">All groups</option>${groups.map(g=>`<option>${esc(g)}</option>`).join('')}</select><input type="search" id="sIn" placeholder="Search items…"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyBig"> only beyond ±${tol} serves</label><div class="sp"></div>${exportBtn('variance','Itemised variance')}<button class="btn sm" onclick="window.print()">Print</button></div><div id="vt"></div></div>`);
+  render();
+  $('#gSel').onchange = e=>{state.g=e.target.value; render();}; $('#sIn').oninput = e=>{state.s=e.target.value.toLowerCase(); render();}; $('#onlyBig').onchange=e=>{state.only=e.target.checked; render();};
+  if($('#perSel')) $('#perSel').onchange = e=>go('variance',{session:e.target.value});
+};
+
+// ---------- GP & Sales
+PAGES.sales = async function(main, q){
+  const site=S.site;
+  const from = q.from || new Date(Date.now()-120*86400000).toISOString().slice(0,10), to = q.to || new Date(Date.now()+86400000).toISOString().slice(0,10);
+  main.innerHTML = head('GP &amp; Sales', `${siteSel()} <input type="date" id="fromIn" value="${from}"> <input type="date" id="toIn" value="${to}"> <button class="btn primary" id="importBtn">Import till CSV</button>`, 'Sales come from the till export. Each product is costed through its recipe at the invoice cost in force at the end of the period. GP is on the ex-VAT price.');
+  const d = await cached(`sales:${site}:${from}:${to}`, ()=>P('dash_sales',{p_site:site, p_from:from, p_to:to}));
+  const vat = 1+VAT();
+  const lines = d.lines.map(l=>{ const val=Number(l.value)||0, qn=Number(l.qty)||0; const ex=val/vat; const cost = l.unit_cost==null?null:Number(l.unit_cost)*qn; const gp = (l.costed && ex>0 && cost!=null) ? (ex-cost)/ex*100 : null;
+    return Object.assign({}, l, {_ex:ex, _cost:cost, _gp:gp, _price: qn?val/qn:null, _unit_gp: (l.costed && qn && l.unit_cost!=null) ? ((val/qn/vat)-l.unit_cost)/(val/qn/vat)*100 : null}); });
+  const byGroup = {}; lines.forEach(l=>{ const g=l.sales_group||l.till_group||'?'; const o = byGroup[g] = byGroup[g]||{group:g, sales:0, ex:0, exc:0, cost:0, qty:0, n:0, costed:0}; o.sales+=Number(l.value)||0; o.ex+=l._ex; o.qty+=Number(l.qty)||0; o.n++; if(l._cost!=null && l.costed){o.cost+=l._cost; o.exc+=l._ex; o.costed++;} });
+  const groups = Object.values(byGroup).map(g=>Object.assign(g,{gp: g.exc>0?(g.exc-g.cost)/g.exc*100:null})).sort((a,b)=>b.sales-a.sales);
+  const totSales = lines.reduce((a,l)=>a+(Number(l.value)||0),0), totEx = totSales/vat, totCost = lines.reduce((a,l)=>a+(l.costed&&l._cost!=null?l._cost:0),0), costedSales = lines.reduce((a,l)=>a+(l.costed&&l._cost!=null?l._ex:0),0);
+  const cocktails = lines.filter(l=>/cocktail|spritz|martini|margarita|mojito|negroni|sour/i.test((l.sales_group||'')+' '+(l.till_product||'')));
+  main.insertAdjacentHTML('beforeend', `
+    <div class="grid g4">
+      <div class="card kpi"><h2>Sales inc VAT</h2><div class="v">${fmt.eur(totSales)}</div><div class="d">${lines.length} till lines · ${d.imports.length} import${d.imports.length===1?'':'s'}</div></div>
+      <div class="card kpi"><h2>Theoretical GP</h2><div class="v">${fmt.pct(costedSales>0?(costedSales-totCost)/costedSales*100:null)}</div><div class="d">on the ${fmt.pct(totEx?costedSales/totEx*100:0,0)} of sales that are fully costed</div></div>
+      <div class="card kpi"><h2>Cost of sales (recipe)</h2><div class="v">${fmt.eur(totCost)}</div><div class="d">what the recipes say was poured, at invoice cost</div></div>
+      <div class="card kpi"><h2>Unmapped</h2><div class="v ${lines.filter(l=>l.status!=='matched').length?'bad':''}">${lines.filter(l=>l.status!=='matched').length}</div><div class="d">till products with no stock mapping — <a href="#review">review</a></div></div>
+    </div>
+    <div class="grid g2 mt">
+      <div class="card"><h2>By sales group <span class="r">${exportBtn('salesGroups','GP by group')}</span></h2>${table('salesGroups',[
+        {h:'Group',k:'group'},{h:'Qty',k:'qty',n:1,f:x=>fmt.num(x,0)},{h:'Sales inc VAT',k:'sales',n:1,f:x=>fmt.eur(x)},{h:'Cost',k:'cost',n:1,f:x=>fmt.eur(x)},{h:'GP % (costed lines)',k:'gp',n:1,f:x=>fmt.pct(x)},{h:'Costed',k:'costed',n:1,f:(x,r)=>r.n?`${x}/${r.n}`:''}
+      ], groups, {sort:{k:'sales',d:'desc'}})}</div>
+      <div class="card"><h2>Imports</h2>${d.imports.length?`<ul class="list">${d.imports.map(i=>`<li><div class="t"><b>${fmt.date(i.period_start)} → ${fmt.date(i.period_end)}</b><small>${esc(i.source)} · ${esc(i.file||'')} · ${i.lines} lines${i.unmatched?` · <span style="color:var(--bad)">${i.unmatched} unmatched</span>`:''}</small></div><div class="v muted" style="font-weight:400;font-size:12px">${fmt.dt(i.imported_at)}</div></li>`).join('')}</ul>`:'<div class="empty">No till imports in this window. Use <b>Import till CSV</b>.</div>'}
+      <div class="note mt">The nightly SambaPOS export lands in the shared Drive folder; until that automation is switched on, drop the CSV here.</div></div>
+    </div>
+    <div class="card mt"><h2>Cocktail &amp; mixed-drink GP <span class="r">${exportBtn('cocktails','Cocktail GP')}</span></h2>${cocktails.length?table('cocktails',[
+        {h:'Product',k:'till_product'},{h:'Qty',k:'qty',n:1,f:x=>fmt.num(x,0)},{h:'Price',k:'_price',n:1,f:x=>fmt.eur(x,2)},{h:'Recipe cost',k:'unit_cost',n:1,f:x=>fmt.eur(x,2)},{h:'GP %',k:'_unit_gp',n:1,f:x=>fmt.pct(x),c:x=>x!=null&&x<65?'neg':''},{h:'Recipe',k:'recipe',f:x=>x?`<span class="sub" style="white-space:normal">${x.map(i=>`${esc(i.item)} ${fmt.num(i.qty,0)}${i.unit==='each'?'':' ml'}`).join(' + ')}</span>`:'<span class="pill warn">no recipe</span>'}
+      ], cocktails, {sort:{k:'qty',d:'desc'}}):'<div class="empty">No cocktail sales in this window.</div>'}</div>
+    <div class="card mt"><div class="tools"><input type="search" id="pIn" placeholder="Search products…"><div class="sp"></div>${exportBtn('products','Product GP')}</div><div id="pt"></div></div>`);
+  const renderP = (s)=>{ const rows = lines.filter(l=>!s || (l.till_product||'').toLowerCase().includes(s));
+    $('#pt').innerHTML = table('products',[
+      {h:'Till product',k:'till_product',f:(x,r)=>`${esc(x)}<span class="sub">${esc(r.till_group||'')}${r.status!=='matched'?' · <b style="color:var(--bad)">unmapped</b>':''}</span>`},{h:'Qty',k:'qty',n:1,f:x=>fmt.num(x,0)},{h:'Sales inc VAT',k:'value',n:1,f:x=>fmt.eur(x,2)},{h:'Price',k:'_price',n:1,f:x=>fmt.eur(x,2)},{h:'Unit cost',k:'unit_cost',n:1,f:(x,r)=>r.costed?fmt.eur(x,2):(x?`<span class="muted">${fmt.eur(x,2)} part</span>`:'—')},{h:'GP %',k:'_unit_gp',n:1,f:x=>fmt.pct(x),c:x=>x!=null&&x<60?'neg':''},{h:'GP €',k:'_gpe',n:1,v:r=>r.costed&&r._cost!=null?r._ex-r._cost:null,f:x=>fmt.eur(x)}
+    ], rows, {sort:{k:'value',d:'desc'}}); };
+  renderP(''); $('#pIn').oninput = e=>renderP(e.target.value.toLowerCase());
+  $('#fromIn').onchange = $('#toIn').onchange = ()=>go('sales',{from:$('#fromIn').value, to:$('#toIn').value});
+  $('#importBtn').onclick = ()=>importDialog();
+};
+
+// ---------- import dialog (CSV → import_sales)
+const PROFILES = {
+  sambapos_product_type:{label:'SambaPOS — Item Sales by Product Type (CSV)', product:['sales_product','product','MenuItemName','Name'], qty:['qty_sold','qty','Quantity'], value:['net_value_eur','value','Total','Amount'], group:['sales_group','group','MenuItemGroup','Group'], section:'section', keep:'Drink', ps:'period_start', pe:'period_end'},
+  sambapos_data_export:{label:'SambaPOS — nightly Data Export', product:['MenuItemName','Item','Name'], qty:['Quantity','Qty'], value:['Total','Amount','Value'], group:['MenuItemGroup','Group','Category']},
+  generic:{label:'Generic CSV (product, qty, value, group)', product:['product','item','name'], qty:['qty','quantity'], value:['value','total','amount'], group:['group','category']}
+};
+function parseCsv(text){ const rows=[]; let row=[], f='', inq=false; for(let i=0;i<text.length;i++){ const c=text[i]; if(inq){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else inq=false; } else f+=c; } else if(c==='"') inq=true; else if(c===','){row.push(f);f='';} else if(c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n') i++; row.push(f); rows.push(row); row=[]; f=''; } else f+=c; }
+  if(f!==''||row.length){ row.push(f); rows.push(row); } const hdr=(rows.shift()||[]).map(h=>h.trim()); return rows.filter(r=>r.some(x=>x!=='')).map(r=>{const o={}; hdr.forEach((h,i)=>o[h]=(r[i]||'').trim()); return o;}); }
+function pick(o, names){ for(const n of names){ const k = Object.keys(o).find(k=>k.toLowerCase()===n.toLowerCase()); if(k) return o[k]; } return ''; }
+function importDialog(){
+  const m = document.createElement('div'); m.className='modal'; m.innerHTML = `<div class="box"><h3>Import till sales</h3>
+    <div class="form"><div><label>Site</label><select id="iSite">${Object.keys(SITES).map(k=>`<option value="${k}" ${k===S.site?'selected':''}>${SITES[k]}</option>`).join('')}</select></div>
+    <div><label>Layout</label><select id="iProf">${Object.keys(PROFILES).map(k=>`<option value="${k}">${PROFILES[k].label}</option>`).join('')}</select></div>
+    <div><label>Period start</label><input type="datetime-local" id="iFrom"></div><div><label>Period end</label><input type="datetime-local" id="iTo"></div></div>
+    <div class="drop mt" id="drop">Drop the CSV here or <label style="text-decoration:underline;cursor:pointer">choose a file<input type="file" id="iFile" accept=".csv,text/csv" hidden></label></div>
+    <div id="iPrev" class="mt muted"></div>
+    <label class="mt" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="iForce"> Replace if this period was already imported</label>
+    <div class="tools mt"><div class="sp"></div><button class="btn" id="iCancel">Cancel</button><button class="btn primary" id="iGo" disabled>Import</button></div></div>`;
+  document.body.appendChild(m); let parsed=null, fname='';
+  const handle = async (file)=>{ fname=file.name; const text = await file.text(); const rows = parseCsv(text); const prof = PROFILES[$('#iProf').value];
+    let use = rows; if(prof.section && prof.keep) { const filtered = rows.filter(r=>!pick(r,[prof.section]) || pick(r,[prof.section])===prof.keep); use = filtered; }
+    parsed = use.map(r=>({till_group:pick(r,prof.group), till_product:pick(r,prof.product), qty:Number(String(pick(r,prof.qty)).replace(/,/g,''))||0, value:pick(r,prof.value)===''?null:Number(String(pick(r,prof.value)).replace(/[€,]/g,''))})).filter(l=>l.till_product);
+    if(prof.ps && rows[0] && pick(rows[0],[prof.ps])){ const f=x=>x.replace(' ','T').slice(0,16); $('#iFrom').value=f(pick(rows[0],[prof.ps])); $('#iTo').value=f(pick(rows[0],[prof.pe])); }
+    $('#iPrev').innerHTML = `${parsed.length} product lines · ${fmt.num(parsed.reduce((a,l)=>a+l.qty,0),0)} items sold · ${fmt.eur(parsed.reduce((a,l)=>a+(l.value||0),0))}<br><small>${parsed.slice(0,3).map(l=>esc(l.till_product)).join(', ')}…</small>`; $('#iGo').disabled = !parsed.length; };
+  $('#iFile').onchange = e=>e.target.files[0] && handle(e.target.files[0]);
+  const dz=$('#drop'); dz.ondragover=e=>{e.preventDefault(); dz.classList.add('on');}; dz.ondragleave=()=>dz.classList.remove('on'); dz.ondrop=e=>{e.preventDefault(); dz.classList.remove('on'); if(e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]);};
+  $('#iCancel').onclick = ()=>m.remove();
+  $('#iGo').onclick = async ()=>{ if(!$('#iFrom').value||!$('#iTo').value){ toast('Set the period start and end'); return; } $('#iGo').disabled=true;
+    try{ const res = await P('import_sales',{p_site:$('#iSite').value, p_period_start:new Date($('#iFrom').value).toISOString(), p_period_end:new Date($('#iTo').value).toISOString(), p_source:PROFILES[$('#iProf').value].label.split(' (')[0], p_profile:$('#iProf').value, p_file_name:fname, p_lines:parsed, p_force:$('#iForce').checked});
+      toast(`Imported ${res.lines} lines (${res.unmatched} unmatched)`); m.remove(); bust(); go('sales',{}); }
+    catch(e){ $('#iPrev').innerHTML = `<div class="err">${esc(e.message)}</div>`; $('#iGo').disabled=false; } };
+}
+
+// ---------- Stock & Ordering
+PAGES.stock = async function(main, q){
+  const site=S.site; const target = Number(setting('target_weeks', 2));
+  main.innerHTML = head('Stock &amp; Ordering', `${siteSel()} ${unitSeg()}`, `On hand = last locked count + everything since (deliveries, sales usage, waste, transfers). Weekly usage is from the latest till import. Suggested order tops each item up to ${target} weeks of cover — change that in Settings.`);
+  const d = await cached('stock:'+site, ()=>P('dash_stock',{p_site:site}));
+  const rows = d.rows.map(r=>{ const on = Number(r.closing_base||0)+Number(r.since_base||0); const days = Number(r.usage_days)||0; const weekly = days>0 ? Number(r.usage_28d_base||0)/days*7 : null;
+    const cover = weekly>0 ? on/weekly : null; const need = weekly>0 ? Math.max(0, target*weekly - on) : null;
+    return Object.assign({}, r, {_on:on, _onq:qty(r,on), _onp:packs(r,on), _val:costOf(r,on), _weekly:weekly, _weeklyq:weekly==null?null:qty(r,weekly), _cover:cover, _order:need==null?null:Math.ceil(packs(r,need)-1e-9), _ordercost: need==null||r.cost_per_pack==null?null:Math.ceil(packs(r,need)-1e-9)*Number(r.cost_per_pack)}); });
+  const suppliers = Array.from(new Set(rows.map(r=>r.supplier||'(no supplier)'))).sort();
+  const totVal = rows.reduce((a,r)=>a+(r._val||0),0), toOrder = rows.filter(r=>r._order>0);
+  const state={sup:'', s:'', only:false};
+  const render=()=>{ const rs = rows.filter(r=>(!state.sup||(r.supplier||'(no supplier)')===state.sup)&&(!state.s||r.item.toLowerCase().includes(state.s))&&(!state.only||r._order>0));
+    $('#st').innerHTML = table('stock',[
+      {h:'Item',k:'item',f:(x,r)=>`${esc(x)}<span class="sub">${esc(r.supplier||'no supplier')}${r.supplier_items?` · ${r.supplier_items.map(s=>esc(s.code||s.desc||'')).filter(Boolean).slice(0,2).join(', ')}`:''}</span>`},
+      {h:'Section',k:'section'},
+      {h:`On hand (${S.unit})`,k:'_onq',n:1,f:(x,r)=>`${fmt.num(x,1)}<span class="sub">${r.item?qtyLabel(r):''}</span>`,c:x=>x<0?'neg':''},
+      {h:'Value at cost',k:'_val',n:1,f:x=>fmt.eur(x)},
+      {h:`Weekly usage (${S.unit})`,k:'_weeklyq',n:1,f:x=>fmt.num(x,1)},
+      {h:'Weeks cover',k:'_cover',n:1,f:x=>x==null?'—':x>52?'52+':fmt.num(x,1),c:x=>x!=null&&x<1?'neg':''},
+      {h:'Order (packs)',k:'_order',n:1,f:(x,r)=>x>0?`<b>${x}</b> <span class="muted">${packLabel(r)}</span>`:'—'},
+      {h:'Order cost',k:'_ordercost',n:1,f:x=>fmt.eur(x)},
+      {h:'Cost / pack',k:'cost_per_pack',n:1,f:x=>fmt.eur(x,2)},
+      {h:'Retail / serve',k:'retail_per_serve',n:1,f:x=>fmt.eur(x,2)}
+    ], rs, {sort:{k:'_cover',d:'asc'}, totals:{item:`${rs.length} items`, _val:r=>r.reduce((a,x)=>a+(x._val||0),0), _ordercost:r=>r.reduce((a,x)=>a+(x._ordercost||0),0)}}); };
+  main.insertAdjacentHTML('beforeend', `
+    <div class="grid g4">
+      <div class="card kpi"><h2>Stock on hand</h2><div class="v">${fmt.eur(totVal)}</div><div class="d">at cost · ${rows.filter(r=>r.cost_per_pack==null).length} items uncosted</div></div>
+      <div class="card kpi"><h2>Items to order</h2><div class="v">${toOrder.length}</div><div class="d">below ${target} weeks cover · ${fmt.eur(toOrder.reduce((a,r)=>a+(r._ordercost||0),0))}</div></div>
+      <div class="card kpi"><h2>Running out</h2><div class="v ${rows.filter(r=>r._cover!=null&&r._cover<1).length?'bad':''}">${rows.filter(r=>r._cover!=null&&r._cover<1).length}</div><div class="d">under a week of cover</div></div>
+      <div class="card kpi"><h2>Overstocked</h2><div class="v">${rows.filter(r=>r._cover!=null&&r._cover>8).length}</div><div class="d">more than 8 weeks of cover</div></div>
+    </div>
+    <div class="card mt"><div class="tools"><select id="supSel"><option value="">All suppliers</option>${suppliers.map(s=>`<option>${esc(s)}</option>`).join('')}</select><input type="search" id="sIn" placeholder="Search items…"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyOrd"> only items to order</label><div class="sp"></div>${exportBtn('stock','Stock and order sheet')}<button class="btn sm" onclick="window.print()">Print</button></div><div id="st"></div>
+    ${d.as_of_session?'':'<div class="warnnote mt">No locked count yet for this site — on hand shows movements only.</div>'}</div>`);
+  render();
+  $('#supSel').onchange=e=>{state.sup=e.target.value;render();}; $('#sIn').oninput=e=>{state.s=e.target.value.toLowerCase();render();}; $('#onlyOrd').onchange=e=>{state.only=e.target.checked;render();};
+};
+
+// ---------- Deliveries & credits
+PAGES.deliveries = async function(main, q){
+  const site=S.site; const days = Number(q.days||60);
+  main.innerHTML = head('Deliveries &amp; credits', `${siteSel()} <select id="daysSel">${[14,30,60,120,365].map(d=>`<option value="${d}" ${d===days?'selected':''}>Last ${d} days</option>`).join('')}</select>`, 'Stock movements posted from the Deliveries app and from Synergy history, plus credits still owed by suppliers.');
+  const [mov, review] = await Promise.all([cached(`mov:${site}:${days}`, ()=>P('dash_movements',{p_site:site, p_from:new Date(Date.now()-days*86400000).toISOString(), p_to:new Date(Date.now()+86400000).toISOString()})), cached('review:'+site, ()=>P('dash_review',{p_site:site}))]);
+  const del = mov.filter(m=>['delivery','free_stock','supplier_return'].includes(m.type)).map(m=>Object.assign({},m,{_p:packs(m,m.qty_base), _c:costOf(m,m.qty_base)}));
+  const bySup = {}; del.forEach(m=>{ const k=(m.ref||'').replace(/^Synergy.*/,'Synergy history'); const o=bySup[k]=bySup[k]||{ref:k,n:0,cost:0}; o.n++; o.cost+=m._c||0; });
+  main.insertAdjacentHTML('beforeend', `
+    <div class="grid g3">
+      <div class="card kpi"><h2>Received</h2><div class="v">${fmt.eur(del.filter(m=>m.type==='delivery'&&!m.voided).reduce((a,m)=>a+(m._c||0),0))}</div><div class="d">${del.filter(m=>m.type==='delivery').length} lines at cost</div></div>
+      <div class="card kpi"><h2>Free stock</h2><div class="v">${fmt.eur(del.filter(m=>m.type==='free_stock'&&!m.voided).reduce((a,m)=>a+(m._c||0),0))}</div><div class="d">promotional / FOC, kept separate from purchases</div></div>
+      <div class="card kpi"><h2>Credits pending</h2><div class="v ${review.pending_credits.length?'bad':''}">${review.pending_credits.length}</div><div class="d">exceptions flagged on delivery, awaiting a credit note</div></div>
+    </div>
+    <div class="card mt"><h2>Credits to chase <span class="r">${exportBtn('credits','Credits pending')}</span></h2>${table('credits',[
+      {h:'Delivered',k:'delivered_on',f:x=>fmt.date(x)},{h:'Supplier',k:'supplier_name'},{h:'Docket',k:'document_ref'},{h:'Line',k:'description',f:(x,r)=>`${esc(x)}<span class="sub">${esc(r.supplier_item_code||'')}</span>`},{h:'Issue',k:'exception_code',f:x=>`<span class="pill bad">${esc(x)}</span>`},{h:'Expected',k:'qty_expected',n:1},{h:'Received',k:'qty_received',n:1},{h:'Note',k:'note'}
+    ], review.pending_credits)}</div>
+    <div class="card mt"><h2>Delivery lines not yet in stock <span class="r">${exportBtn('unposted','Unposted delivery lines')}</span></h2><div class="muted" style="margin-bottom:8px;font-size:12px">These were received in the Deliveries app but the supplier product is not linked to a stock item yet. Link it in <code>tools/deliveries</code> supplier items and they post automatically.</div>${table('unposted',[
+      {h:'Delivered',k:'delivered_on',f:x=>fmt.date(x)},{h:'Supplier',k:'supplier_name'},{h:'Docket',k:'document_ref'},{h:'Code',k:'supplier_item_code'},{h:'Description',k:'description'},{h:'Qty',k:'qty_received',n:1},{h:'Unit',k:'unit_as_printed'},{h:'Pack',k:'pack_as_printed'}
+    ], review.unposted_delivery_lines)}</div>
+    <div class="card mt"><h2>Movements <span class="r">${exportBtn('deliv','Deliveries')}</span></h2>${table('deliv',[
+      {h:'When',k:'when',f:x=>fmt.dt(x)},{h:'Type',k:'type',f:(x,r)=>`<span class="pill ${x==='delivery'?'ok':x==='supplier_return'?'warn':'info'}">${esc(x.replace('_',' '))}</span>${r.voided?' <span class="pill bad">voided</span>':''}`},{h:'Item',k:'item'},{h:'Packs',k:'_p',n:1,f:(x,r)=>`${fmt.num(x,2)} <span class="muted">${packLabel(r)}</span>`},{h:'At cost',k:'_c',n:1,f:x=>fmt.eur(x,2)},{h:'Source',k:'ref',f:(x,r)=>`${esc(x||r.source||'')}<span class="sub">${esc(r.note||'')}</span>`},{h:'By',k:'by'}
+    ], del, {sort:{k:'when',d:'desc'}})}</div>`);
+  $('#daysSel').onchange = e=>go('deliveries',{days:e.target.value});
+};
+
+// ---------- Goods out (dashboard view of waste / comps / transfers, with void)
+PAGES.goodsout = async function(main, q){
+  const site=S.site; const days = Number(q.days||28);
+  main.innerHTML = head('Goods out', `${siteSel()} <select id="daysSel">${[7,14,28,60,120].map(d=>`<option value="${d}" ${d===days?'selected':''}>Last ${d} days</option>`).join('')}</select> <a class="btn" href="goodsout.html" target="_blank">Open the phone page</a>`, 'Waste, comps, transfers and write-offs staff log on the phone. Voiding reverses an entry (the original stays for the audit trail).');
+  const mov = await cached(`mov:${site}:${days}`, ()=>P('dash_movements',{p_site:site, p_from:new Date(Date.now()-days*86400000).toISOString(), p_to:new Date(Date.now()+86400000).toISOString()}));
+  const go_ = mov.filter(m=>['waste','comp','transfer_out','transfer_in','adjustment','supplier_return'].includes(m.type) && m.source==='goods_out' || (['waste','adjustment','transfer_in','transfer_out'].includes(m.type) && m.source!=='goods_out')).map(m=>Object.assign({},m,{_s:serves(m,-m.qty_base), _c:costOf(m,-m.qty_base), _r:retailOf(m,-m.qty_base)}));
+  const live = go_.filter(m=>!m.voided);
+  const byReason={}; live.filter(m=>['waste','comp'].includes(m.type)).forEach(m=>{const k=(m.type+': '+(m.reason||'—')); const o=byReason[k]=byReason[k]||{reason:k,n:0,cost:0}; o.n++; o.cost+=m._c||0;});
+  const byStaff={}; live.forEach(m=>{const k=m.by||'—'; const o=byStaff[k]=byStaff[k]||{by:k,n:0,cost:0}; o.n++; o.cost+=m._c||0;});
+  main.insertAdjacentHTML('beforeend', `
+    <div class="grid g4">
+      <div class="card kpi"><h2>Waste</h2><div class="v bad">${fmt.eur(live.filter(m=>m.type==='waste').reduce((a,m)=>a+(m._c||0),0))}</div><div class="d">${live.filter(m=>m.type==='waste').length} entries at cost</div></div>
+      <div class="card kpi"><h2>Comps</h2><div class="v">${fmt.eur(live.filter(m=>m.type==='comp').reduce((a,m)=>a+(m._r||0),0))}</div><div class="d">at retail · ${fmt.eur(live.filter(m=>m.type==='comp').reduce((a,m)=>a+(m._c||0),0))} at cost</div></div>
+      <div class="card kpi"><h2>Transfers out</h2><div class="v">${fmt.eur(live.filter(m=>m.type==='transfer_out').reduce((a,m)=>a+(m._c||0),0))}</div><div class="d">${live.filter(m=>m.type==='transfer_out').length} entries to the other site</div></div>
+      <div class="card kpi"><h2>Write-offs</h2><div class="v">${fmt.eur(live.filter(m=>m.type==='adjustment').reduce((a,m)=>a+(m._c||0),0))}</div><div class="d">manager adjustments</div></div>
+    </div>
+    <div class="grid g2 mt">
+      <div class="card"><h2>By reason</h2>${table('goReason',[{h:'Reason',k:'reason'},{h:'Entries',k:'n',n:1},{h:'At cost',k:'cost',n:1,f:x=>fmt.eur(x,2)}], Object.values(byReason), {sort:{k:'cost',d:'desc'}})}</div>
+      <div class="card"><h2>By staff member</h2>${table('goStaff',[{h:'Logged by',k:'by'},{h:'Entries',k:'n',n:1},{h:'At cost',k:'cost',n:1,f:x=>fmt.eur(x,2)}], Object.values(byStaff), {sort:{k:'n',d:'desc'}})}</div>
+    </div>
+    <div class="card mt"><h2>Entries <span class="r">${exportBtn('goList','Goods out')}</span></h2>${table('goList',[
+      {h:'When',k:'when',f:x=>fmt.dt(x)},{h:'Type',k:'type',f:(x,r)=>`<span class="pill ${x==='waste'?'bad':x==='comp'?'warn':'info'}">${esc(x.replace('_',' '))}</span>${r.voided?' <span class="pill">voided</span>':''}`},{h:'Item',k:'item'},{h:'Qty',k:'_s',n:1,f:(x,r)=>`${fmt.num(x,1)} <span class="muted">${serveLabel(r)}</span>`},{h:'At cost',k:'_c',n:1,f:x=>fmt.eur(x,2)},{h:'Reason',k:'reason',f:(x,r)=>`${esc(x||'')}<span class="sub">${esc(r.note||'')}</span>`},{h:'By',k:'by'},{h:'',k:'id',f:(x,r)=>r.voided||r.source!=='goods_out'?'':`<button class="btn sm danger" data-void="${x}">Void</button>`}
+    ], go_, {sort:{k:'when',d:'desc'}})}</div>`);
+  $('#daysSel').onchange = e=>go('goodsout',{days:e.target.value});
+  main.onclick = async e=>{ const b=e.target.closest('[data-void]'); if(!b) return; const reason = prompt('Why is this being voided?'); if(reason===null) return; b.disabled=true;
+    try{ await P('void_movement',{p_movement_id:Number(b.dataset.void), p_reason:reason}); toast('Voided'); bust('mov'); bust('stock'); go('goodsout',{days}); }catch(err){ toast(err.message); b.disabled=false; } };
+};
+
+// ---------- Price watch
+PAGES.prices = async function(main, q){
+  const days = Number(q.days||120);
+  main.innerHTML = head('Price watch', `<select id="daysSel">${[30,60,120,365].map(d=>`<option value="${d}" ${d===days?'selected':''}>Last ${d} days</option>`).join('')}</select>`, 'Every cost change recorded from invoices (and Synergy history for Bolton Street), newest first. Rises above 5% are flagged.');
+  const p = await cached('prices:'+days, ()=>P('dash_prices',{p_days:days}));
+  const rows = p.map(r=>Object.assign({},r,{_chg: r.previous?(r.cost_per_pack-r.previous)/r.previous*100:null, _site:(r.source||'').startsWith('Synergy')?'Bolton (Synergy)':'Invoice'}));
+  const rises = rows.filter(r=>r._chg>5), falls = rows.filter(r=>r._chg<-5);
+  main.insertAdjacentHTML('beforeend', `
+    <div class="grid g3">
+      <div class="card kpi"><h2>Price rises</h2><div class="v bad">${rises.length}</div><div class="d">over 5% · biggest ${rises.length?`${esc(rises.sort((a,b)=>b._chg-a._chg)[0].item)} ${fmt.sgn(rises[0]._chg,0)}%`:'—'}</div></div>
+      <div class="card kpi"><h2>Price drops</h2><div class="v good">${falls.length}</div><div class="d">over 5%</div></div>
+      <div class="card kpi"><h2>Cost records</h2><div class="v">${rows.length}</div><div class="d">in the window · ${rows.filter(r=>r._site==='Invoice').length} from invoices</div></div>
+    </div>
+    <div class="card mt"><div class="tools"><input type="search" id="sIn" placeholder="Search items…"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="onlyChg"> only changes</label><div class="sp"></div>${exportBtn('prices','Price watch')}</div><div id="pt"></div></div>`);
+  const render=(s,only)=>{ const rs=rows.filter(r=>(!s||r.item.toLowerCase().includes(s))&&(!only||(r._chg!=null&&Math.abs(r._chg)>=0.5)));
+    $('#pt').innerHTML = table('prices',[
+      {h:'Date',k:'effective_from',f:x=>fmt.date(x)},{h:'Item',k:'item'},{h:'Cost / pack',k:'cost_per_pack',n:1,f:x=>fmt.eur(x,2)},{h:'Previous',k:'previous',n:1,f:x=>fmt.eur(x,2)},{h:'Change',k:'_chg',n:1,f:x=>x==null?'<span class="muted">first record</span>':fmt.sgn(x,1)+'%',c:x=>x>5?'neg':x<-5?'pos':''},{h:'Per serve',k:'_ps',n:1,v:r=>r.cost_per_pack/packSize(r)*serveMl(r),f:x=>fmt.eur(x,2)},{h:'Source',k:'source',f:(x,r)=>`${esc(x)}<span class="sub">${r._site}</span>`}
+    ], rs, {sort:{k:'effective_from',d:'desc'}}); };
+  render('',false); $('#sIn').oninput=e=>render(e.target.value.toLowerCase(),$('#onlyChg').checked); $('#onlyChg').onchange=e=>render($('#sIn').value.toLowerCase(),e.target.checked);
+  $('#daysSel').onchange = e=>go('prices',{days:e.target.value});
+};
+
+// ---------- Synergy compare
+PAGES.synergy = async function(main, q){
+  const periods = (S.boot.synergy_periods||[]).filter(p=>p.site_id===S.site);
+  main.innerHTML = head('Synergy compare', `${siteSel()} ${periods.length?`<select id="spSel">${periods.map(p=>`<option value="${p.stock_date}" ${p.stock_date===(q.date||periods[periods.length-1].stock_date)?'selected':''}>${fmt.date(p.period_from)} → ${fmt.date(p.stock_date)}</option>`).join('')}</select>`:''}`, 'Synergy\'s stocktake report line by line against the same period rebuilt in our own ledger. Small differences are rounding (Synergy rounds kegs to whole pints, counts spirits in 35 ml serves where we use 35.5 ml).');
+  if(!periods.length){ main.insertAdjacentHTML('beforeend', `<div class="empty">No Synergy reports loaded for ${SITES[S.site]}.</div>`); return; }
+  const date = q.date || periods[periods.length-1].stock_date; const per = periods.find(p=>p.stock_date===date);
+  const sess = lockedFor(S.site).find(s=>new Date(s.cutoff_at).toISOString().slice(0,10)===date);
+  const [syn, v] = await Promise.all([cached(`syn:${S.site}:${date}`, ()=>P('dash_synergy',{p_site:S.site, p_stock_date:date})), sess?variance(sess.id):null]);
+  const t = periodTotals(v); const byId = {}; (v?v.rows:[]).forEach(r=>byId[r.stock_item_id]=r);
+  const rows = syn.lines.filter(l=>!l.pooled_parent).map(l=>{ const r=byId[l.stock_item_id]; const appVar = r?serves(r,r.variance_base):null; const appShould = r?serves(r,r.should_have):null;
+    return {item:l.item, group:l.report_group, syn_var:l.var_cur_serves, app_var:appVar, diff: appVar==null?null:appVar-Number(l.var_cur_serves), syn_should:l.should_serves, app_should:appShould, syn_cost:l.var_cost, app_cost:r?costOf(r,r.variance_base):null, syn_retail:l.var_retail, app_retail:r?retailOf(r,r.variance_base):null, gp:l.gp_act_pct, _r:r}; });
+  const within = rows.filter(r=>r.diff!=null && Math.abs(r.diff)<1.5).length;
+  const kv = (label, a, b) => `<tr><td>${label}</td><td class="n">${a}</td><td class="n">${b}</td></tr>`;
+  main.insertAdjacentHTML('beforeend', `
+    <div class="grid g3">
+      <div class="card kpi"><h2>Lines matched</h2><div class="v">${within} / ${rows.length}</div><div class="d">variance within 1.5 serves of Synergy</div></div>
+      <div class="card kpi"><h2>Synergy variance</h2><div class="v">${fmt.eur(per.opening_value!=null?syn.lines.filter(l=>!l.pooled_parent).reduce((a,l)=>a+Number(l.var_retail||0),0):null)}</div><div class="d">at retail · ours ${fmt.eur(t.retail)}</div></div>
+      <div class="card kpi"><h2>GP actual</h2><div class="v">${fmt.pct(per.gp_actual_pct)}</div><div class="d">Synergy · ours ${fmt.pct(t.gp)}</div></div>
+    </div>
+    <div class="grid g2 mt">
+      <div class="card"><h2>Period summary</h2><div class="tw" style="max-height:none"><table><thead><tr><th>Measure</th><th class="n">Synergy</th><th class="n">BoCo ledger</th></tr></thead><tbody>
+        ${kv('Days', per.days, t.days)}${kv('Opening stock value', fmt.eur(per.opening_value), fmt.eur(t.opening_cost))}${kv('Purchases', fmt.eur(per.purchases), fmt.eur(t.deliveries_cost))}${kv('Closing stock value', fmt.eur(per.closing_value), fmt.eur(t.closing_cost))}
+        ${kv('Cost of sales', fmt.eur(per.cos), fmt.eur(t.cos))}${kv('Sales inc VAT', fmt.eur(per.sales_inc_vat), fmt.eur(t.sales_retail))}${kv('Sales ex VAT', fmt.eur(per.sales_ex_vat), fmt.eur(t.sales_ex))}${kv('Gross profit %', fmt.pct(per.gp_actual_pct), fmt.pct(t.gp))}${kv('Waste at cost', fmt.eur(per.waste_cost), fmt.eur(t.waste_cost))}
+      </tbody></table></div><div class="muted mt" style="font-size:12px">Our values use Synergy's own cost per case and retail per serve for this period, so gaps come from pooled lines (Synergy prices "***" families as one) and items Synergy carries with no movement.</div></div>
+      <div class="card"><h2>Where we differ</h2><ul class="list">${rows.filter(r=>r.diff!=null&&Math.abs(r.diff)>=1.5).sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff)).slice(0,10).map(r=>`<li><div class="t"><b>${esc(r.item)}</b><small>Synergy ${fmt.sgn(r.syn_var,0)} · ours ${fmt.sgn(r.app_var,1)} ${r._r?serveLabel(r._r):''}</small></div><div class="v">${fmt.sgn(r.diff,1)}</div></li>`).join('')||'<li class="muted">All lines within 1.5 serves.</li>'}</ul></div>
+    </div>
+    <div class="card mt"><div class="tools"><input type="search" id="sIn" placeholder="Search…"><div class="sp"></div>${exportBtn('syncmp','Synergy comparison')}</div><div id="st"></div></div>`);
+  const render=(s)=>{ $('#st').innerHTML = table('syncmp',[
+      {h:'Item (Synergy name)',k:'item',f:(x,r)=>`${esc(x)}<span class="sub">${esc(r.group||'')}${r._r?'':' · not in our ledger'}</span>`},{h:'Synergy variance',k:'syn_var',n:1,f:x=>fmt.sgn(x,0)},{h:'Our variance',k:'app_var',n:1,f:x=>fmt.sgn(x,1)},{h:'Difference',k:'diff',n:1,f:x=>fmt.sgn(x,1),c:x=>x!=null&&Math.abs(x)>=1.5?'neg':''},{h:'Synergy should',k:'syn_should',n:1,f:x=>fmt.num(x,0)},{h:'Our should',k:'app_should',n:1,f:x=>fmt.num(x,1)},{h:'Synergy €',k:'syn_retail',n:1,f:x=>fmt.eur(x)},{h:'Our €',k:'app_retail',n:1,f:x=>fmt.eur(x)},{h:'GP %',k:'gp',n:1,f:x=>fmt.pct(x)}
+    ], rows.filter(r=>!s||r.item.toLowerCase().includes(s)), {sort:{k:'diff',d:'desc'}}); };
+  render(''); $('#sIn').oninput=e=>render(e.target.value.toLowerCase());
+  if($('#spSel')) $('#spSel').onchange=e=>go('synergy',{date:e.target.value});
+};
+
+// ---------- Review queue
+PAGES.review = async function(main){
+  const site=S.site;
+  main.innerHTML = head('Review queue', siteSel(), 'Everything that stops a number being trusted. Clear these and the variance and GP pages get sharper.');
+  const r = await cached('review:'+site, ()=>P('dash_review',{p_site:site}));
+  setNavReview(Object.values(r).reduce((a,b)=>a+(b||[]).length,0));
+  main.insertAdjacentHTML('beforeend', `
+    <div class="grid g2">
+      <div class="card"><h2>Till products not mapped (${r.unmatched_till.length}) <span class="r">${exportBtn('rvTill','Unmapped till products')}</span></h2><div class="muted" style="font-size:12px;margin-bottom:8px">Add an alias in <code>tools/sales-import/aliases.csv</code> (or a new sales product + recipe) and re-import with Replace.</div>${table('rvTill',[{h:'Till product',k:'till_product'},{h:'Group',k:'till_group'},{h:'Qty',k:'qty',n:1},{h:'Value',k:'value',n:1,f:x=>fmt.eur(x)},{h:'Period end',k:'period_end',f:x=>fmt.date(x)}], r.unmatched_till, {sort:{k:'value',d:'desc'}})}</div>
+      <div class="card"><h2>Items with no cost (${r.no_cost.length}) <span class="r">${exportBtn('rvCost','Items without cost')}</span></h2><div class="muted" style="font-size:12px;margin-bottom:8px">Costs come from invoices (tools/costs). Until one lands, these items count in serves but not in €.</div>${table('rvCost',[{h:'Item',k:'item'},{h:'Section',k:'section'}], r.no_cost)}</div>
+      <div class="card"><h2>Low-confidence catalogue items (${r.low_confidence.length}) <span class="r">${exportBtn('rvConf','Low confidence items')}</span></h2>${table('rvConf',[{h:'Item',k:'item'},{h:'Confidence',k:'confidence',f:x=>`<span class="pill ${x==='Low'?'bad':'warn'}">${esc(x||'?')}</span>`},{h:'Notes',k:'notes',f:x=>`<span class="sub" style="white-space:normal;max-width:360px">${esc(x||'')}</span>`}], r.low_confidence)}</div>
+      <div class="card"><h2>Kegs without an empty weight (${r.kegs_without_weight.length})</h2><div class="muted" style="font-size:12px;margin-bottom:8px">Set them in Settings → Keg weights once weighed. Do not guess.</div><ul class="list">${r.kegs_without_weight.map(k=>`<li><div class="t"><b>${esc(k)}</b></div></li>`).join('')||'<li class="muted">All kegs have weights.</li>'}</ul></div>
+      <div class="card"><h2>Delivery lines not posted (${r.unposted_delivery_lines.length})</h2>${table('rvUnp',[{h:'Delivered',k:'delivered_on',f:x=>fmt.date(x)},{h:'Supplier',k:'supplier_name'},{h:'Code',k:'supplier_item_code'},{h:'Description',k:'description'},{h:'Qty',k:'qty_received',n:1}], r.unposted_delivery_lines)}</div>
+      <div class="card"><h2>Credits pending (${r.pending_credits.length})</h2>${table('rvCred',[{h:'Delivered',k:'delivered_on',f:x=>fmt.date(x)},{h:'Supplier',k:'supplier_name'},{h:'Line',k:'description'},{h:'Issue',k:'exception_code'},{h:'Expected',k:'qty_expected',n:1},{h:'Received',k:'qty_received',n:1}], r.pending_credits)}</div>
+    </div>`);
+};
+
+// ---------- Settings
+PAGES.settings = async function(main){
+  const site=S.site;
+  main.innerHTML = head('Settings', siteSel(), 'Site settings, keg weights, prices and staff. Changes are saved to the shared database with your PIN.');
+  const stock = await cached('stock:'+site, ()=>P('dash_stock',{p_site:site}));
+  const kegs = stock.rows.filter(r=>r.stock_type==='keg');
+  const staff = (S.boot.staff||[]);
+  main.insertAdjacentHTML('beforeend', `
+    <div class="grid g2">
+      <div class="card"><h2>Numbers for ${SITES[site]}</h2><div class="form">
+        <div><label>VAT rate on drink sales (%)</label><input type="number" id="setVat" step="0.5" value="${Number(setting('vat_rate',23))}"></div>
+        <div><label>Order up to (weeks of cover)</label><input type="number" id="setWeeks" step="0.5" value="${Number(setting('target_weeks',2))}"></div>
+        <div><label>Variance worth a look (serves)</label><input type="number" id="setTol" step="1" value="${Number(setting('variance_tolerance_serves',2))}"></div>
+        <div><label>Brief recipients (for your notes)</label><input type="text" id="setWho" value="${esc(setting('brief_recipients',''))}"></div>
+      </div><div class="tools mt"><div class="sp"></div><button class="btn primary" id="saveNums">Save</button></div></div>
+      <div class="card"><h2>Staff &amp; PINs</h2><div class="muted" style="font-size:12px;margin-bottom:8px">PINs are set from the phone app (manager → staff). Deactivating needs the owner PIN.</div>${table('staff',[{h:'Name',k:'name'},{h:'Role',k:'role',f:x=>`<span class="pill ${x==='owner'?'info':x==='manager'?'ok':''}">${esc(x)}</span>`},{h:'Site',k:'site_id',f:x=>x?SITES[x]||x:'both'},{h:'Active',k:'active',f:x=>x?'yes':'<span class="muted">no</span>'},{h:'',k:'id',f:(x,r)=>r.id===S.me.staff_id?'':`<button class="btn sm ${r.active?'danger':''}" data-staff="${x}" data-act="${r.active?0:1}">${r.active?'Deactivate':'Reactivate'}</button>`}], staff)}</div>
+    </div>
+    <div class="card mt"><h2>Keg weights <span class="r">${exportBtn('kegs','Keg weights')}</span></h2><div class="muted" style="font-size:12px;margin-bottom:8px">Litres remaining = gross weight − empty keg weight (1 litre ≈ 1 kg). Enter the empty weight once you have weighed a real empty of that keg. Leave blank rather than guess.</div>
+      <div class="tw" style="max-height:none"><table><thead><tr><th>Keg</th><th class="n">Size (L)</th><th class="n">Empty weight (kg)</th><th class="n">Full weight (kg)</th><th></th></tr></thead><tbody>
+      ${kegs.map(k=>`<tr><td>${esc(k.item)}<span class="sub">${esc(k.supplier||'')}</span></td><td class="n"><input type="number" step="1" style="width:80px" value="${k.keg_size_litres==null?'':Number(k.keg_size_litres)}" data-kl="${k.stock_item_id}"></td><td class="n"><input type="number" step="0.1" style="width:90px" value="${k.empty_keg_weight_kg==null?'':Number(k.empty_keg_weight_kg)}" data-kw="${k.stock_item_id}" placeholder="not weighed"></td><td class="n">${k.empty_keg_weight_kg!=null&&k.keg_size_litres!=null?fmt.num(Number(k.empty_keg_weight_kg)+Number(k.keg_size_litres),1):'—'}</td><td><button class="btn sm" data-ksave="${k.stock_item_id}">Save</button></td></tr>`).join('')}
+      </tbody></table></div></div>
+    <div class="card mt"><h2>Prices &amp; costs</h2><div class="muted" style="font-size:12px;margin-bottom:8px">Retail is the price per serve inc VAT (used for variance at retail and GP). Cost should come from invoices; an override here is dated today and shows as “dashboard” in Price watch.</div>
+      <div class="form"><div><label>Item</label><select id="prItem">${stock.rows.map(r=>`<option value="${r.stock_item_id}">${esc(r.item)}</option>`).join('')}</select></div>
+      <div><label>Retail per serve (€ inc VAT)</label><input type="number" step="0.05" id="prRetail"></div><div><label>Serve size (ml, or 1 for units)</label><input type="number" step="0.5" id="prServe"></div>
+      <div><label>Cost per pack (€ ex VAT)</label><input type="number" step="0.01" id="prCost"></div><div><label>Note</label><input type="text" id="prNote" placeholder="why"></div></div>
+      <div class="tools mt"><span class="muted" id="prNow"></span><div class="sp"></div><button class="btn" id="saveRetail">Save retail</button><button class="btn" id="saveCost">Save cost</button></div></div>`);
+  const showNow = ()=>{ const r = stock.rows.find(x=>String(x.stock_item_id)===$('#prItem').value); $('#prNow').textContent = r?`Now: retail ${fmt.eur(r.retail_per_serve,2)} per ${r.retail_serve_ml?Number(r.retail_serve_ml)+' ml':'serve'} · cost ${fmt.eur(r.cost_per_pack,2)} per ${packLabel(r).replace(/s$/,'')}`:''; $('#prServe').value = r?serveMl(r):''; $('#prRetail').value=''; $('#prCost').value=''; };
+  showNow(); $('#prItem').onchange=showNow;
+  $('#saveNums').onclick = async ()=>{ try{ await P('dash_set_setting',{p_site:site,p_key:'vat_rate',p_value:Number($('#setVat').value)}); await P('dash_set_setting',{p_site:site,p_key:'target_weeks',p_value:Number($('#setWeeks').value)}); await P('dash_set_setting',{p_site:site,p_key:'variance_tolerance_serves',p_value:Number($('#setTol').value)}); await P('dash_set_setting',{p_site:site,p_key:'brief_recipients',p_value:$('#setWho').value}); S.settings[site+':vat_rate']=Number($('#setVat').value); S.settings[site+':target_weeks']=Number($('#setWeeks').value); S.settings[site+':variance_tolerance_serves']=Number($('#setTol').value); S.settings[site+':brief_recipients']=$('#setWho').value; toast('Saved'); }catch(e){ toast(e.message); } };
+  main.onclick = async e=>{
+    const ks = e.target.closest('[data-ksave]'); if(ks){ const id=Number(ks.dataset.ksave); const l=$(`[data-kl="${id}"]`).value, w=$(`[data-kw="${id}"]`).value; try{ await P('dash_set_keg',{p_stock_item_id:id, p_keg_size_litres:l===''?null:Number(l), p_empty_kg:w===''?null:Number(w)}); toast('Keg saved'); bust('stock'); bust('review'); }catch(err){ toast(err.message);} return; }
+    const st = e.target.closest('[data-staff]'); if(st){ if(st.dataset.act==='0' && !confirm('Deactivate this PIN?')) return; try{ await P('dash_staff_deactivate',{p_staff_id:Number(st.dataset.staff), p_active:st.dataset.act==='1'}); toast('Updated'); const b = await P('dash_bootstrap',{}); S.boot=b; go('settings',{}); }catch(err){ toast(err.message);} }
+  };
+  $('#saveRetail').onclick = async ()=>{ const v=Number($('#prRetail').value); if(!(v>0)){toast('Enter a retail price');return;} try{ await P('dash_set_retail',{p_stock_item_id:Number($('#prItem').value), p_site:site, p_retail:v, p_serve_ml:Number($('#prServe').value)||1}); toast('Retail saved'); bust(); go('settings',{}); }catch(e){ toast(e.message);} };
+  $('#saveCost').onclick = async ()=>{ const v=Number($('#prCost').value); if(!(v>0)){toast('Enter a cost');return;} try{ await P('dash_set_cost',{p_stock_item_id:Number($('#prItem').value), p_site:site, p_cost:v, p_note:$('#prNote').value||null}); toast('Cost saved'); bust(); go('settings',{}); }catch(e){ toast(e.message);} };
+};
+
+// ============================================================ router / shell
+function setNavReview(n){ const el=$('#navReview'); el.textContent=n; el.classList.toggle('hidden', !n); }
+function parseHash(){ const h = location.hash.replace(/^#/,''); const [p, qs] = h.split('?'); const q={}; (qs||'').split('&').forEach(kv=>{ if(!kv) return; const [k,v]=kv.split('='); q[decodeURIComponent(k)]=decodeURIComponent(v||''); }); return {page:p||'brief', q}; }
+function go(page, q){ const qs = Object.entries(q||{}).filter(([k,v])=>v!==undefined&&v!==null&&v!=='').map(([k,v])=>`${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&'); const h = '#'+page+(qs?'?'+qs:''); if(location.hash===h) route(); else location.hash = h; }
+let routing = 0;
+async function route(){
+  const {page, q} = parseHash(); const fn = PAGES[page] || PAGES.brief; S.page = page; const my = ++routing;
+  $$('#nav a.item').forEach(a=>a.classList.toggle('on', a.dataset.p===page));
+  const main = $('#main');
+  try{ await fn(main, q); }catch(e){ if(my!==routing) return; main.insertAdjacentHTML('beforeend', `<div class="err">${esc(e.message)}</div>`); if(/PIN/i.test(e.message)){ signOut(); } }
+  if(my!==routing) return;
+  const ss = $('#siteSel'); if(ss) ss.onchange = e=>{ S.site=e.target.value; localStorage.setItem('boco_dash_site', S.site); go(page, {}); };
+  const us = $('#unitSeg'); if(us) us.onclick = e=>{ const b=e.target.closest('button'); if(!b) return; S.unit=b.dataset.u; localStorage.setItem('boco_dash_unit', S.unit); route(); };
+  document.title = `BoCo · ${page[0].toUpperCase()+page.slice(1)} · ${SITES[S.site]}`;
+}
+window.addEventListener('hashchange', route);
+function signOut(){ sessionStorage.removeItem('boco_dash_pin'); S.pin=''; S.boot=null; S.cache={}; $('#shell').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#pin').value=''; $('#pin').focus(); }
+async function signIn(pin){
+  $('#pinErr').classList.add('hidden'); $('#pinGo').disabled = true;
+  try{ const b = await rpc('dash_bootstrap',{p_pin:pin}); S.pin=pin; sessionStorage.setItem('boco_dash_pin', pin); S.boot=b; S.me=b.me; S.settings=b.settings||{};
+    if(b.me.site_id && !localStorage.getItem('boco_dash_site')) S.site=b.me.site_id;
+    $('#meName').textContent=b.me.name; $('#meRole').textContent=`${b.me.role}${b.me.site_id?' · '+SITES[b.me.site_id]:''}`;
+    $('#login').classList.add('hidden'); $('#shell').classList.remove('hidden'); route(); }
+  catch(e){ $('#pinErr').textContent = e.message; $('#pinErr').classList.remove('hidden'); }
+  finally{ $('#pinGo').disabled=false; }
+}
+$('#pinGo').onclick = ()=>signIn($('#pin').value.trim());
+$('#pin').addEventListener('keydown', e=>{ if(e.key==='Enter') signIn($('#pin').value.trim()); });
+$('#logout').onclick = signOut;
+if(S.pin) signIn(S.pin); else $('#pin').focus();
+})();
+</script>
+</body>
+</html>

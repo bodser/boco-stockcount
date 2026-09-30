@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f2a37">
+<title>BoCo Goods Out</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{--bg:#f4f5f7;--card:#fff;--ink:#1f2a37;--muted:#6b7280;--line:#e5e7eb;--brand:#b5442b;--ok:#1a7f4b;--warn:#b7791f;--bad:#b42318;--soft:#fff4ef}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+  header{position:sticky;top:0;z-index:5;background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px}
+  header h1{font-size:17px;margin:0;flex:1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  header .who{font-size:12px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38%}
+  header button,header a{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 10px;font-size:13px;text-decoration:none}
+  main{padding:14px 14px 90px;max-width:640px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+  .card h2{font-size:15px;margin:0 0 10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input,select,textarea{width:100%;font:inherit;padding:12px;border:1px solid #cfd4dc;border-radius:10px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:0;border-color:transparent}
+  .row{display:flex;gap:10px}.row>*{flex:1 1 0;min-width:0}
+  .btn{display:block;width:100%;font:inherit;font-weight:600;padding:14px;border-radius:12px;border:0;background:var(--brand);color:#fff;margin-top:10px}
+  .btn.secondary{background:#fff;color:var(--ink);border:1px solid #cfd4dc}.btn:disabled{opacity:.45}
+  .types{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .types button{font:inherit;font-weight:600;padding:14px 10px;border-radius:12px;border:1px solid #cfd4dc;background:#fff;color:var(--ink);text-align:left}
+  .types button small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+  .types button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.types button.on small{color:#cbd5e1}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .chips button{font:inherit;font-size:14px;padding:8px 12px;border-radius:999px;border:1px solid #cfd4dc;background:#fff;color:var(--ink)}
+  .chips button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .seg{display:flex;border:1px solid #cfd4dc;border-radius:12px;overflow:hidden}
+  .seg button{flex:1;font:inherit;font-weight:600;padding:12px;border:0;background:#fff;color:var(--ink)}.seg button.on{background:var(--ink);color:#fff}
+  .pick{position:relative}
+  .sugg{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #cfd4dc;border-radius:10px;max-height:260px;overflow:auto;z-index:4;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .sugg div{padding:10px 12px;border-top:1px solid var(--line)}.sugg div:first-child{border-top:0}.sugg div small{display:block;color:var(--muted);font-size:12px}
+  .sugg div:active{background:var(--soft)}
+  .chosen{background:var(--soft);border:1px solid #f1c8bb;border-radius:10px;padding:10px 12px;margin-top:6px;display:flex;align-items:center;gap:8px}
+  .chosen b{flex:1}.chosen button{background:none;border:0;color:var(--bad);font:inherit}
+  .list .item{display:flex;gap:10px;padding:12px 0;border-top:1px solid var(--line);align-items:center}.list .item:first-child{border-top:0}
+  .item .t{flex:1;min-width:0}.item .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item .t small{color:var(--muted)}
+  .pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;background:#eef0f3;color:var(--muted)}
+  .pill.waste{background:#fdecec;color:var(--bad)}.pill.comp{background:#fff7e6;color:#8a5a00}.pill.transfer_out{background:#e8effd;color:#1d4ed8}.pill.free_stock{background:#e6f5ec;color:var(--ok)}.pill.void{text-decoration:line-through}
+  .muted{color:var(--muted);font-size:13px}
+  .err{background:#fdecec;color:var(--bad);border:1px solid #f5c2c0;border-radius:10px;padding:10px;margin-top:10px;font-size:14px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+  .toast.show{opacity:1}
+  .hidden{display:none!important}
+  .pin{font-size:28px;letter-spacing:.4em;text-align:center}
+  .big{font-size:22px;text-align:center;font-weight:600}
+  .qtyrow{display:flex;gap:8px;align-items:center;margin-top:6px}
+  .qtyrow button{font:inherit;font-size:22px;width:52px;height:52px;border-radius:12px;border:1px solid #cfd4dc;background:#fff}
+  .qtyrow input{flex:1;min-width:0}
+  .x{background:none;border:0;color:var(--bad);font:inherit;font-size:13px;padding:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Goods out</h1>
+  <span class="who" id="who"></span>
+  <a href="index.html" id="homeLink" class="hidden">Stock count</a>
+  <button id="logoutBtn" class="hidden">Log out</button>
+</header>
+<main id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+'use strict';
+const CFG = window.BOCO_CONFIG || {};
+const SITES = {CLT:'Clontarf', BOL:'Bolton Street'};
+const TYPES = [
+  ['waste','Waste','spilled, out of date, broken, line clean'],
+  ['comp','Comp / on the house','given away, complaint, staff drink'],
+  ['transfer_out','Transfer to other site','moving stock between Clontarf and Bolton St'],
+  ['free_stock','Free stock in','promo or FOC stock that arrived'],
+  ['supplier_return','Back to supplier','returned kegs or bottles (credit due)'],
+  ['adjustment','Write-off (manager)','stock that is simply gone']
+];
+const REASONS = {
+  waste:['Spillage','Out of date','Broken','Line clean / fobbing','Wrong pour','Off / faulty keg','Other'],
+  comp:['Customer complaint','Staff drink','Owner / manager','Promotion','Regular / goodwill','Other'],
+  transfer_out:['Ran out','Event','Rebalancing stock','Other'],
+  free_stock:['Supplier promo','Rep sample','Replacement for faulty','Other'],
+  supplier_return:['Faulty / off','Over-delivered','Wrong item','Other'],
+  adjustment:['Count correction','Theft suspected','Unknown','Other']
+};
+const $ = (s, el)=>(el||document).querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let S = { pin: sessionStorage.getItem('boco_pin') || sessionStorage.getItem('boco_deliv_pin') || '', me:null, site: localStorage.getItem('boco_go_site') || 'CLT',
+          cat:[], type:'waste', item:null, unit:'serve', qty:1, reason:'', recent:[] };
+async function rpc(fn, args){ const r = await fetch(CFG.url.replace(/\/+$/,'')+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:CFG.key,Authorization:'Bearer '+CFG.key,'Content-Type':'application/json'},body:JSON.stringify(args)});
+  const t = await r.text(); let j=null; try{ j=t?JSON.parse(t):null; }catch(e){} if(!r.ok) throw new Error((j&&(j.message||j.hint))||t||('error '+r.status)); return j; }
+async function get(path){ const r = await fetch(CFG.url.replace(/\/+$/,'')+'/rest/v1/'+path,{headers:{apikey:CFG.key,Authorization:'Bearer '+CFG.key}}); if(!r.ok) throw new Error('read failed '+r.status); return r.json(); }
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2400); }
+function serveMl(r){ return Number(r.serve_ml)||(r.base_unit==='each'?1:35.5); }
+function packSize(r){ return r.base_unit==='each'?1:(Number(r.pack_size)||1); }
+function serveLabel(r){ if(r.base_unit==='each') return 'units'; const ml=serveMl(r); return ml>=500?'pints':ml>=100?'glasses':'measures'; }
+function packLabel(r){ return r.stock_type==='keg'?'kegs':r.base_unit==='each'?'units':'bottles'; }
+function fmtQty(r, base){ const b=Math.abs(Number(base)); if(r.base_unit==='each') return `${b} ${b===1?'unit':'units'}`; const s=b/serveMl(r); if(s<packSize(r)/serveMl(r) || r.stock_type!=='keg' && s<10) return `${Math.round(s*10)/10} ${serveLabel(r)}`; const p=b/packSize(r); return `${Math.round(p*100)/100} ${packLabel(r)} (${Math.round(s)} ${serveLabel(r)})`; }
+function when(d){ return new Date(d).toLocaleString('en-IE',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }
+
+function vLogin(){
+  $('#homeLink').classList.add('hidden'); $('#logoutBtn').classList.add('hidden'); $('#who').textContent='';
+  $('#app').innerHTML = `<div class="card"><h2>Your PIN</h2><input class="pin" id="pin" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••">
+    <label>Site</label><select id="siteSel">${Object.keys(SITES).map(k=>`<option value="${k}" ${k===S.site?'selected':''}>${SITES[k]}</option>`).join('')}</select>
+    <button class="btn" id="go">Start</button><div id="err"></div><p class="muted">Log waste, comps, transfers and returns here. Every entry is dated and has your name on it, so be exact — a manager can void mistakes.</p></div>`;
+  $('#go').onclick = login; $('#pin').addEventListener('keydown', e=>{ if(e.key==='Enter') login(); }); $('#pin').focus();
+}
+async function login(){ const pin=$('#pin').value.trim(); $('#go').disabled=true; $('#err').innerHTML='';
+  try{ const me = await rpc('staff_login',{p_pin:pin}); S.me = Array.isArray(me)?me[0]:me; S.pin=pin; sessionStorage.setItem('boco_pin',pin); S.site=$('#siteSel').value; if(S.me.site_id && S.me.role==='staff') S.site=S.me.site_id; localStorage.setItem('boco_go_site',S.site); await boot(); }
+  catch(e){ $('#err').innerHTML=`<div class="err">${esc(e.message)}</div>`; $('#go').disabled=false; } }
+async function boot(){
+  const cat = await get('stock_item?select=id,name,stock_type,base_unit,pack_size,serve_ml,section:section_id(name),stock_item_site(site_id,active)&order=name');
+  S.cat = cat.filter(r=>(r.stock_item_site||[]).some(s=>s.site_id===S.site&&s.active)).map(r=>Object.assign(r,{section:(r.section&&r.section.name)||''}));
+  S.recent = await rpc('goods_out_recent',{p_pin:S.pin,p_site:S.site,p_days:7});
+  vHome();
+}
+function vHome(){
+  $('#homeLink').classList.remove('hidden'); $('#logoutBtn').classList.remove('hidden'); $('#who').textContent = `${S.me.name} · ${SITES[S.site]}`;
+  const r = S.item; const canVoid = S.me.role==='manager'||S.me.role==='owner';
+  $('#app').innerHTML = `
+    <div class="card"><h2>What happened?</h2><div class="types">${TYPES.filter(t=>t[0]!=='adjustment'||canVoid).map(t=>`<button data-type="${t[0]}" class="${S.type===t[0]?'on':''}">${t[1]}<small>${t[2]}</small></button>`).join('')}</div></div>
+    <div class="card"><h2>Which item?</h2><div class="pick"><input type="search" id="q" placeholder="Start typing… e.g. Guinness, Aperol" autocomplete="off" ${r?'class="hidden"':''}><div class="sugg hidden" id="sugg"></div></div>
+      ${r?`<div class="chosen"><b>${esc(r.name)}</b><span class="muted">${esc(r.section)}</span><button id="clearItem">change</button></div>`:''}
+      ${r?`<label>How much?</label><div class="seg" id="unitSeg"><button data-u="serve" class="${S.unit==='serve'?'on':''}">${serveLabel(r)}</button>${r.base_unit==='each'?'':`<button data-u="pack" class="${S.unit==='pack'?'on':''}">whole ${packLabel(r)}</button>`}</div>
+      <div class="qtyrow"><button id="minus">−</button><input type="number" id="qty" inputmode="decimal" step="${S.unit==='pack'&&r.stock_type==='keg'?'0.1':'0.5'}" min="0" value="${S.qty}" class="big"><button id="plus">+</button></div>
+      <div class="muted" id="qtyHint"></div>`:''}
+      ${S.type==='transfer_out'?`<label>To</label><select id="toSite">${Object.keys(SITES).filter(k=>k!==S.site).map(k=>`<option value="${k}">${SITES[k]}</option>`).join('')}</select>`:''}
+      <label>Why?</label><div class="chips" id="chips">${(REASONS[S.type]||[]).map(x=>`<button class="${S.reason===x?'on':''}" data-r="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+      <label>Note (optional)</label><input type="text" id="note" placeholder="e.g. table 4, keg tapped and flat">
+      <button class="btn" id="save" ${r&&S.reason?'':'disabled'}>Save</button><div id="err"></div></div>
+    <div class="card"><h2>Last 7 days · ${SITES[S.site]}</h2><div class="list">${S.recent.length?S.recent.map(m=>`<div class="item"><div class="t"><b>${esc(m.item)}</b><small>${fmtQty(m,m.qty_base)} · ${esc(m.reason||'')}${m.note?' · '+esc(m.note):''}<br>${when(m.when)} · ${esc(m.by||'')}</small></div><span class="pill ${m.type} ${m.voided?'void':''}">${m.type.replace('_',' ')}</span>${canVoid&&!m.voided?`<button class="x" data-void="${m.id}">void</button>`:''}</div>`).join(''):'<div class="muted">Nothing logged yet.</div>'}</div></div>
+    <p class="muted" style="text-align:center">Goods out v1.0 · ${canVoid?'managers can void entries here or on the dashboard':'ask a manager to void a mistake'}</p>`;
+  const app=$('#app');
+  app.querySelector('.types').onclick = e=>{ const b=e.target.closest('[data-type]'); if(!b) return; S.type=b.dataset.type; S.reason=''; vHome(); };
+  $('#chips').onclick = e=>{ const b=e.target.closest('[data-r]'); if(!b) return; S.reason=b.dataset.r; vHome(); };
+  const q=$('#q'), sugg=$('#sugg');
+  q.oninput = ()=>{ const s=q.value.trim().toLowerCase(); if(!s){ sugg.classList.add('hidden'); return; } const hits=S.cat.filter(r=>r.name.toLowerCase().includes(s)).slice(0,12);
+    sugg.innerHTML = hits.map(r=>`<div data-id="${r.id}">${esc(r.name)}<small>${esc(r.section)} · ${serveLabel(r)}${r.base_unit==='each'?'':' / '+packLabel(r)}</small></div>`).join('')||'<div class="muted">No match — ask a manager to add it in the stock app.</div>'; sugg.classList.remove('hidden'); };
+  sugg.onclick = e=>{ const d=e.target.closest('[data-id]'); if(!d) return; S.item=S.cat.find(r=>String(r.id)===d.dataset.id); S.unit='serve'; S.qty=1; vHome(); };
+  if($('#clearItem')) $('#clearItem').onclick=()=>{S.item=null; vHome(); setTimeout(()=>$('#q').focus(),50);};
+  if(r){
+    const hint=()=>{ const n=Number($('#qty').value)||0; const base = S.unit==='pack'?n*packSize(r):n*serveMl(r); $('#qtyHint').textContent = r.base_unit==='each'?'' : (S.unit==='pack'?`= ${Math.round(base/serveMl(r))} ${serveLabel(r)}`:`= ${(base/packSize(r)).toFixed(2)} ${packLabel(r)}`); S.qty=n; };
+    $('#unitSeg').onclick=e=>{ const b=e.target.closest('[data-u]'); if(!b) return; S.unit=b.dataset.u; S.qty = S.unit==='pack'?1:1; vHome(); };
+    $('#qty').oninput=hint; $('#minus').onclick=()=>{ $('#qty').value=Math.max(0,(Number($('#qty').value)||0)-(S.unit==='pack'?1:1)); hint(); }; $('#plus').onclick=()=>{ $('#qty').value=(Number($('#qty').value)||0)+1; hint(); }; hint();
+    $('#save').onclick = save;
+  }
+  app.onclick = async e=>{ const b=e.target.closest('[data-void]'); if(!b) return; if(!confirm('Void this entry? It stays in the record as reversed.')) return; try{ await rpc('void_movement',{p_pin:S.pin,p_movement_id:Number(b.dataset.void),p_reason:'voided on phone'}); toast('Voided'); S.recent = await rpc('goods_out_recent',{p_pin:S.pin,p_site:S.site,p_days:7}); vHome(); }catch(err){ toast(err.message); } };
+}
+async function save(){
+  const r=S.item; const n=Number($('#qty').value); if(!(n>0)){ toast('Enter a quantity'); return; } $('#save').disabled=true; $('#err').innerHTML='';
+  try{ const res = await rpc('log_movement',{p_pin:S.pin,p_site:S.site,p_stock_item_id:r.id,p_type:S.type,p_qty:n,p_unit:S.unit,p_reason:S.reason,p_note:$('#note').value||null,p_to_site:S.type==='transfer_out'?$('#toSite').value:null});
+    toast(`Saved — ${fmtQty(r,res.qty_base)} ${TYPES.find(t=>t[0]===S.type)[1].toLowerCase()}`); S.item=null; S.qty=1; S.reason=''; S.recent = await rpc('goods_out_recent',{p_pin:S.pin,p_site:S.site,p_days:7}); vHome(); }
+  catch(e){ $('#err').innerHTML=`<div class="err">${esc(e.message)}</div>`; $('#save').disabled=false; }
+}
+$('#logoutBtn').onclick = ()=>{ S.me=null; S.pin=''; sessionStorage.removeItem('boco_pin'); vLogin(); };
+(async ()=>{ if(S.pin){ try{ const me=await rpc('staff_login',{p_pin:S.pin}); S.me=Array.isArray(me)?me[0]:me; if(S.me.site_id&&S.me.role==='staff') S.site=S.me.site_id; await boot(); return; }catch(e){ S.pin=''; } } vLogin(); })();
+})();
+</script>
+</body>
+</html>
